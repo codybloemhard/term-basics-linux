@@ -44,7 +44,17 @@ pub mod tbl{
             ARR.into_iter()
         }
     }
-
+    /// Sets the colour of the text printed after this call.
+    /// It will print linux colour escape characters to std out.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// for i in tbl::UserColour::iterator(){
+    ///     tbl::set_colour(i.clone());
+    ///     println!("haha yes");
+    /// }
+    /// ```
     pub fn set_colour(col: UserColour){
         let _id = ToPrimitive::to_u8(&col);
         let mut id = 0;
@@ -56,24 +66,24 @@ pub mod tbl{
     }
 
     pub fn print<T: std::fmt::Display>(msg: T){
-        //set_colour(MsgType::Normal);
+        set_colour(UserColour::Std);
         print!("{}", msg);
     }
 
-    /*pub fn print_type<T: std::fmt::Display>(msg: T, msgtype: MsgType){
-        set_colour(msgtype);
+    pub fn print_col<T: std::fmt::Display>(msg: T, col: UserColour){
+        set_colour(col);
         print!("{}", msg);
-    }*/
+    }
 
     pub fn println<T: std::fmt::Display>(msg: T){
-        //set_colour(MsgType::Normal);
+        set_colour(UserColour::Std);
         println!("{}", msg);
     }
 
-    /*pub fn println_type<T: std::fmt::Display>(msg: T, msgtype: MsgType){
-        set_colour(msgtype);
+    pub fn println_type<T: std::fmt::Display>(msg: T, col: UserColour){
+        set_colour(col);
         println!("{}", msg);
-    }*/
+    }
     /// Returns the character as u8 typed by the user. 
     /// It will return immediately after being typed, without the user pressing 'enter'.
     ///
