@@ -186,22 +186,126 @@ pub mod tbl{
         colorcode.push_str("m");
         print!("{}", colorcode);
     }
-
+    /// Print to stdout, it is just  print!("{}", msg);
+    /// Here to stay consistent
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::print("cool and good");
+    /// ```
     pub fn print<T: std::fmt::Display>(msg: T){
         print!("{}", msg);
     }
-
+    /// Print to stdout, it is just  println!("{}", msg);
+    /// Here to stay consistent
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::println("cool and good");
+    /// ```
+    pub fn println<T: std::fmt::Display>(msg: T){
+        println!("{}", msg);
+    }
+    /// Print to stdout with a text colour.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::print_col("orang no!", tbl::UserColour::Yellow);
+    /// ```
     pub fn print_col<T: std::fmt::Display>(msg: T, col: UserColour){
         set_colour(col, FGBG::FG);
         print!("{}", msg);
     }
-
-    pub fn println<T: std::fmt::Display>(msg: T){
-        println!("{}", msg);
-    }
-
+    /// Print to stdout with a text colour.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::println_col("orang no!", tbl::UserColour::Yellow);
+    /// ```
     pub fn println_col<T: std::fmt::Display>(msg: T, col: UserColour){
         set_colour(col, FGBG::FG);
+        println!("{}", msg);
+    }
+    /// Print to stdout with text and background colours.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::print_cols("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black);
+    /// ```
+    pub fn print_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
+        set_colours(fg, bg);
+        print!("{}", msg);
+    }
+    /// Print to stdout with text and background colours.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::println_cols("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black);
+    /// ```
+    pub fn println_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
+        set_colours(fg, bg);
+        println!("{}", msg);
+    }
+    /// Print to stdout with text style.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::print_style("I am bold.", tbl::TextStyle::Bold);
+    /// ```
+    pub fn print_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
+        set_style(sty);
+        print!("{}", msg);
+    }
+    /// Print to stdout with text style.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::println_style("I am bold.", tbl::TextStyle::Bold);
+    /// ```
+    pub fn println_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
+        set_style(sty);
+        println!("{}", msg);
+    }
+    /// Print to stdout with text and background colours and style.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::print_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
+    /// ```
+    pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour, sty: TextStyle){
+        set_colours(fg, bg);
+        set_style(sty);
+        print!("{}", msg);
+    }
+    /// Print to stdout with text and background colours and style.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::println_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
+    /// ```
+    pub fn println_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour, sty: TextStyle){
+        set_colours(fg, bg);
+        set_style(sty);
         println!("{}", msg);
     }
     /// Returns the character as u8 typed by the user. 
