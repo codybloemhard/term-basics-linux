@@ -5,7 +5,25 @@ mod tests {
         assert_eq!(2 + 2, 4);
     }
 }
-
+/// # Examples
+/// ```
+/// use term_basics_linux::tbl;
+/// for sty in tbl::TextStyle::iterator(){
+///     for bg in tbl::UserColour::iterator(){
+///         for fg in tbl::UserColour::iterator(){
+///             tbl::set_style(sty.clone());
+///             tbl::set_colour(bg.clone(), tbl::FGBG::BG);
+///             tbl::set_colour(fg.clone(), tbl::FGBG::FG);
+///             println!("haha yes");
+///         }
+///     }
+/// }
+/// ```
+/// ```
+/// let name = tbl::prompt("type your name: ");
+/// tbl::print("Your name: ");
+/// tbl::println(name);
+/// ```
 pub mod tbl{
     use std::io;
     use std::io::Write; //flush stdout
@@ -15,22 +33,32 @@ pub mod tbl{
     use num_derive::ToPrimitive;
     use num_traits::ToPrimitive;
     use std::slice::Iter;
-
-    #[derive(Clone,ToPrimitive)]
+    /// Colours available. The user has defined the exact values of 
+    /// these colours for there TTY or emulator.
+    #[derive(PartialEq,Eq,Clone,ToPrimitive)]
     pub enum UserColour {
-        Std     = 00,
-        Black   = 30,
-        Red     = 31,
-        Green   = 32,
-        Yellow  = 33,
-        Blue    = 34,
-        Magenta = 35,
-        Cyan    = 36,
-        Grey    = 37,
+        Std     = 99,
+        Black   = 0,
+        Red     = 1,
+        Green   = 2,
+        Yellow  = 3,
+        Blue    = 4,
+        Magenta = 5,
+        Cyan    = 6,
+        Grey    = 7,
     }
-
+    /// Iterate over all colours in the enum
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// for col in tbl::UserColour::iterator(){
+    ///     //use col
+    /// }
+    /// ```
     impl UserColour {
-        pub fn iterator() -> Iter<'static, UserColour> {
+        pub fn iterator() -> Iter<'static, Self> {
             static ARR: [UserColour; 9] = [
                 UserColour::Std, 
                 UserColour::Black,
@@ -44,44 +72,136 @@ pub mod tbl{
             ARR.into_iter()
         }
     }
+    /// All styles that do not alter fg or bg colours.
+    #[derive(PartialEq,Eq,Clone,ToPrimitive)]
+    pub enum TextStyle {
+        Std         = 0,
+        Bold        = 1,
+        Faint       = 2,
+        Italic      = 3,
+        Underlined  = 4,
+        Blink       = 5,
+        Hidden      = 8,
+        Crossed     = 9,
+    }
+    /// Iterate over all styles.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// for sty in tbl::TextStyle::iterator(){
+    ///     //use sty
+    /// }
+    /// ```
+    impl TextStyle {
+        pub fn iterator() -> Iter<'static, Self> {
+            static ARR: [TextStyle; 8] = [
+                TextStyle::Std, 
+                TextStyle::Bold,
+                TextStyle::Faint,
+                TextStyle::Italic,
+                TextStyle::Underlined,
+                TextStyle::Blink,
+                TextStyle::Hidden,
+                TextStyle::Crossed];
+            ARR.into_iter()
+        }
+    }
+    /// To specify if you set the foreground or background colour.
+    #[derive(PartialEq,Eq)]
+    pub enum FGBG { FG, BG }
     /// Sets the colour of the text printed after this call.
+    /// It will print linux colour escape characters to std out.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// for i in tbl::UserColour::iterator(){
+    ///     tbl::set_colour(i.clone(), tbl::FGBG::FG);
+    ///     println!("haha yes");
+    /// }
+    /// ```
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// for i in tbl::UserColour::iterator(){
+    ///     tbl::set_colour(i.clone(), tbl::FGBG::BG);
+    ///     println!("haha yes");
+    /// }
+    /// ```
+    pub fn set_colour(col: UserColour, fgbg: FGBG){
+        if col == UserColour::Std{
+            print!("\x1B[00m");
+        }
+        let _id = ToPrimitive::to_u8(&col);
+        let mut id = 0;
+        if _id.is_some() { id = _id.unwrap(); }
+        let mut colorcode = String::from("\x1B[");
+        if fgbg == FGBG::FG {
+            colorcode.push('3');
+        }else{
+            colorcode.push('4');
+        }
+        colorcode.push_str(&format!("{}", id));
+        colorcode.push_str("m");
+        print!("{}", colorcode);
+    }
+    /// Sets both foreground and background colours
     /// It will print linux colour escape characters to std out.
     /// 
     /// # Example
     /// 
     /// ```
-    /// for i in tbl::UserColour::iterator(){
-    ///     tbl::set_colour(i.clone());
+    /// use term_basics_linux::tbl;
+    /// for fg in tbl::UserColour::iterator(){
+    ///     for bg in tbl::UserColour::iterator(){
+    ///         tbl::set_colours(fg.clone(), bg.clone());
+    ///         println!("haha yes");
+    ///     }
+    /// }
+    /// ```
+    pub fn set_colours(fg: UserColour, bg: UserColour){
+        set_colour(fg, FGBG::FG);
+        set_colour(bg, FGBG::BG);
+    }
+    /// Sets the style of the text printed after this call.
+    /// It will print linux colour escape characters to std out.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// for i in tbl::TextStyle::iterator(){
+    ///     tbl::set_style(i.clone());
     ///     println!("haha yes");
     /// }
     /// ```
-    pub fn set_colour(col: UserColour){
-        let _id = ToPrimitive::to_u8(&col);
+    pub fn set_style(sty: TextStyle){
+        let _id = ToPrimitive::to_u8(&sty);
         let mut id = 0;
         if _id.is_some() { id = _id.unwrap(); }
-        let mut colorcode = String::from("\x1B[00;");
+        let mut colorcode = String::from("\x1B[0");
         colorcode.push_str(&format!("{}", id));
         colorcode.push_str("m");
         print!("{}", colorcode);
     }
 
     pub fn print<T: std::fmt::Display>(msg: T){
-        set_colour(UserColour::Std);
         print!("{}", msg);
     }
 
     pub fn print_col<T: std::fmt::Display>(msg: T, col: UserColour){
-        set_colour(col);
+        set_colour(col, FGBG::FG);
         print!("{}", msg);
     }
 
     pub fn println<T: std::fmt::Display>(msg: T){
-        set_colour(UserColour::Std);
         println!("{}", msg);
     }
 
-    pub fn println_type<T: std::fmt::Display>(msg: T, col: UserColour){
-        set_colour(col);
+    pub fn println_col<T: std::fmt::Display>(msg: T, col: UserColour){
+        set_colour(col, FGBG::FG);
         println!("{}", msg);
     }
     /// Returns the character as u8 typed by the user. 
