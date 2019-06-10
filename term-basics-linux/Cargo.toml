@@ -3,6 +3,8 @@ name = "term-basics-linux"
 version = "0.1.0"
 authors = ["Cody Bloemhard <codybloemhard@gmail.com>"]
 edition = "2018"
+description = "A simple crate with basic functionality for terminal applications."
+license = "MIT"
 
 [lib]
 name = "term_basics_linux"
