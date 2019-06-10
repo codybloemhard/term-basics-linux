@@ -2,12 +2,9 @@ extern crate term_basics_linux;
 use term_basics_linux::tbl;
 
 pub fn main(){
-    use term_basics_linux::tbl::getch;
-    //print user input until spacebar is pressed
-    loop{
-        let x = getch();
-        if x == 32 { break; }
-        print!("{}", x as char);
+    for i in tbl::UserColour::iterator(){
+        tbl::set_colour(i.clone());
+        tbl::println("haha yes");
     }
 }
 

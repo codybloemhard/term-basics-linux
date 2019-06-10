@@ -12,46 +12,68 @@ pub mod tbl{
     use std::io::Read;
     use termios::{Termios, TCSANOW, ECHO, ICANON, tcsetattr};
     use std::cmp::{ max, min };
+    use num_derive::ToPrimitive;
+    use num_traits::ToPrimitive;
+    use std::slice::Iter;
 
-    #[derive(Clone)]
-    pub enum MsgType {
-        Normal,
-        Error,
-        Prompt,
-        Highlight,
-        Value,
+    #[derive(Clone,ToPrimitive)]
+    pub enum UserColour {
+        Std     = 00,
+        Black   = 30,
+        Red     = 31,
+        Green   = 32,
+        Yellow  = 33,
+        Blue    = 34,
+        Magenta = 35,
+        Cyan    = 36,
+        Grey    = 37,
     }
 
-    pub fn set_colour(msgtype: MsgType){
-        let colorcode = match msgtype {
-            MsgType::Normal => "\x1B[32m",
-            MsgType::Error => "\x1B[31m",
-            MsgType::Prompt => "\x1B[36m",
-            MsgType::Highlight => "\x1B[37m",
-            MsgType::Value => "\x1B[33m",
-        };
+    impl UserColour {
+        pub fn iterator() -> Iter<'static, UserColour> {
+            static ARR: [UserColour; 9] = [
+                UserColour::Std, 
+                UserColour::Black,
+                UserColour::Red,
+                UserColour::Green,
+                UserColour::Yellow,
+                UserColour::Blue,
+                UserColour::Magenta,
+                UserColour::Cyan,
+                UserColour::Grey];
+            ARR.into_iter()
+        }
+    }
+
+    pub fn set_colour(col: UserColour){
+        let _id = ToPrimitive::to_u8(&col);
+        let mut id = 0;
+        if _id.is_some() { id = _id.unwrap(); }
+        let mut colorcode = String::from("\x1B[00;");
+        colorcode.push_str(&format!("{}", id));
+        colorcode.push_str("m");
         print!("{}", colorcode);
     }
 
     pub fn print<T: std::fmt::Display>(msg: T){
-        set_colour(MsgType::Normal);
+        //set_colour(MsgType::Normal);
         print!("{}", msg);
     }
 
-    pub fn print_type<T: std::fmt::Display>(msg: T, msgtype: MsgType){
+    /*pub fn print_type<T: std::fmt::Display>(msg: T, msgtype: MsgType){
         set_colour(msgtype);
         print!("{}", msg);
-    }
+    }*/
 
     pub fn println<T: std::fmt::Display>(msg: T){
-        set_colour(MsgType::Normal);
+        //set_colour(MsgType::Normal);
         println!("{}", msg);
     }
 
-    pub fn println_type<T: std::fmt::Display>(msg: T, msgtype: MsgType){
+    /*pub fn println_type<T: std::fmt::Display>(msg: T, msgtype: MsgType){
         set_colour(msgtype);
         println!("{}", msg);
-    }
+    }*/
     /// Returns the character as u8 typed by the user. 
     /// It will return immediately after being typed, without the user pressing 'enter'.
     ///
@@ -134,7 +156,7 @@ pub mod tbl{
         let mut hoen_state: u8 = 0;
         let mut pos = 0;
 
-        set_colour(MsgType::Normal);
+        //set_colour(MsgType::Normal);
         loop {
             match getch(){
                 10 => { print!("\n"); break; } //enter
@@ -222,7 +244,7 @@ pub mod tbl{
     /// tbl::println(name);
     /// ```
     pub fn prompt(msg : &str) -> String{
-        print_type(msg, MsgType::Prompt);
+        //print_type(msg, MsgType::Prompt);
         std::io::stdout().flush().expect("Error: stdout flush failed.");
         return input_field();
     }
