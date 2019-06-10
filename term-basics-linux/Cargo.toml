@@ -4,5 +4,13 @@ version = "0.1.0"
 authors = ["Cody Bloemhard <codybloemhard@gmail.com>"]
 edition = "2018"
 
+[lib]
+name = "term_basics_linux"
+path = "src/lib.rs"
+
+[[bin]]
+name = "testbin"
+path = "src/bin.rs"
+
 [dependencies]
 termios = "0.3.1"
