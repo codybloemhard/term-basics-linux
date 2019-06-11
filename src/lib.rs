@@ -11,10 +11,7 @@ mod tests {
 /// for sty in tbl::TextStyle::iterator(){
 ///     for bg in tbl::UserColour::iterator(){
 ///         for fg in tbl::UserColour::iterator(){
-///             tbl::set_style(sty.clone());
-///             tbl::set_colour(bg.clone(), tbl::FGBG::BG);
-///             tbl::set_colour(fg.clone(), tbl::FGBG::FG);
-///             println!("haha yes");
+///             tbl::println_cols_style("cool and good", fg, bg, sty);
 ///         }
 ///     }
 /// }
@@ -353,7 +350,7 @@ pub mod tbl{
     /// Lets the user type text. It returns the string after the user presses 'enter'.
     /// It supports moving the cursor with the arrow keys, 
     /// going to the begin and end of the line using 'home' and 'end'
-    /// and deleting characters with backspace.
+    /// and deleting characters with backspace and the delete key.
     /// 
     /// # Example
     /// 
@@ -369,7 +366,7 @@ pub mod tbl{
             }
             return string;
         }
-        fn typed_char(ch: u8, buff: &mut Vec<char>, astate: &mut u8, pos: &mut usize){
+        fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, pos: &mut usize){
             let ch = ch as char;
             buff.insert(*pos, ch);
             if *pos != buff.len() - 1{
@@ -382,11 +379,11 @@ pub mod tbl{
             }else{
                 print!("{}", ch);
             }
-            *astate = 0;
+            *gstate = 0;
             *pos += 1;
         }
         let mut res = Vec::new();
-        let mut arrow_state: u8 = 0;
+        let mut gstate: u8 = 0;
         let mut hoen_state: u8 = 0;
         let mut pos = 0;
 
@@ -405,24 +402,24 @@ pub mod tbl{
                     print(charvec_to_string(&printres));
                     print!("{}", 8 as char);
                     //print!("\x1B[1D"); //also works
-                    arrow_state = 0;
+                    gstate = 0;
                     pos = res.len();
                 }
-                27 => { //first char in arrow code and home/end code
-                    arrow_state = 1;
+                27 => { //first char in arrow code and home/end code and other char combos
+                    gstate = 1;
                     hoen_state = 1;
                 } 
-                91 => { //2nd char in arrow code and home/end code
-                    if arrow_state == 1 { arrow_state = 2; }
+                91 => { //2nd char in arrow code and home/end code and other char combos
+                    if gstate == 1 { gstate = 2; }
                     if hoen_state == 1 { hoen_state = 2; }
                 }
                 65 => { //up arrow 
-                    if arrow_state == 2 {}
-                    else { typed_char(65, &mut res, &mut arrow_state, &mut pos); }
+                    if gstate == 2 {}
+                    else { typed_char(65, &mut res, &mut gstate, &mut pos); }
                 }
                 66 => { //down arrow 
-                    if arrow_state == 2 {}
-                    else { typed_char(66, &mut res, &mut arrow_state, &mut pos); }
+                    if gstate == 2 {}
+                    else { typed_char(66, &mut res, &mut gstate, &mut pos); }
                 }
                 72 => { //home key
                     if hoen_state != 2 { continue; }
@@ -443,23 +440,36 @@ pub mod tbl{
                     pos = res.len();
                     hoen_state = 0;
                 }
+                80 => { //delete key
+                    if gstate != 2 { continue; }
+                    if pos == res.len() { continue; }
+                    res.remove(pos);
+                    let len = res.len() - pos;
+                    for i in pos..res.len(){
+                        print!("{}", res[i]);
+                    }
+                    print!(" ");
+                    for _ in 0..len + 1{
+                        print!("{}", 8 as char);
+                    }
+                }
                 67 => {  //right arrow
-                    if arrow_state == 2 {
+                    if gstate == 2 {
                         if pos < res.len() { print!("\x1B[1C"); }
-                        arrow_state = 0;
+                        gstate = 0;
                         pos = min(pos + 1, res.len());
                     }
-                    else { typed_char(67, &mut res, &mut arrow_state, &mut pos); }
+                    else { typed_char(67, &mut res, &mut gstate, &mut pos); }
                 }
                 68 => {  //left arrow
-                    if arrow_state == 2 {
+                    if gstate == 2 {
                         if pos > 0 { print!("{}", 8 as char); }
-                        arrow_state = 0;
+                        gstate = 0;
                         pos = max(pos as i32 - 1, 0 as i32) as usize;
                     }
-                    else { typed_char(68, &mut res, &mut arrow_state, &mut pos); }
+                    else { typed_char(68, &mut res, &mut gstate, &mut pos); }
                 }
-                x => { typed_char(x, &mut res, &mut arrow_state, &mut pos); }
+                x => { typed_char(x, &mut res, &mut gstate, &mut pos); }
             }
         }
         return charvec_to_string(&res);
@@ -478,7 +488,7 @@ pub mod tbl{
     /// tbl::println(name);
     /// ```
     pub fn prompt(msg : &str) -> String{
-        //print_type(msg, MsgType::Prompt);
+        print(msg);
         std::io::stdout().flush().expect("Error: stdout flush failed.");
         return input_field();
     }

@@ -2,7 +2,8 @@ extern crate term_basics_linux;
 use term_basics_linux::tbl;
 
 pub fn main(){
-    test_all_colours_styles();
+    //test_test_chars();
+    test_input_field();
 }
 
 fn test_getch(){
