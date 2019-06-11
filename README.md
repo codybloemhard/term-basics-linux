@@ -1,5 +1,5 @@
 [![Crate](https://img.shields.io/crates/v/term-basics-linux.svg)](https://crates.io/crates/term-basics-linux)
-[![API](https://docs.rs/rand/badge.svg)](https://docs.rs/term-basics-linux/0.1.2/term_basics_linux/tbl/index.html)
+[![API](https://img.shields.io/crates/v/term-basics-linux.svg?color=blue&label=docs)](https://docs.rs/term-basics-linux/0.1.2/term_basics_linux/tbl/index.html)
 # term-basics-linux
 Rust crate libary that provides simple and basic terminal functionality for linux. (Work In Progress!)
 ## usage
