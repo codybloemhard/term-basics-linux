@@ -2,6 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux::tbl;
 
 pub fn main(){
+    tbl::print_cols_style("very nice", tbl::UserColour::Yellow, tbl::UserColour::Cyan, tbl::TextStyle::Bold);
     //test_test_chars();
     test_input_field();
 }
