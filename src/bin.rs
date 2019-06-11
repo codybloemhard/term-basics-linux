@@ -3,7 +3,18 @@ use term_basics_linux::tbl;
 
 pub fn main(){
     //test_test_chars();
-    test_input_field();
+    //test_input_field();
+    use term_basics_linux::tbl;
+    for sty in tbl::TextStyle::iterator(){
+        for bg in tbl::UserColour::iterator(){
+            for fg in tbl::UserColour::iterator(){
+                tbl::set_style(sty.clone());
+                tbl::set_colour(bg.clone(), tbl::FGBG::BG);
+                tbl::set_colour(fg.clone(), tbl::FGBG::FG);
+                println!("haha yes");
+            }
+        }
+    }
 }
 
 fn test_getch(){

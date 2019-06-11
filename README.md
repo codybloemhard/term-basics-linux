@@ -1,5 +1,6 @@
 # term-basics-linux
 Rust crate libary that provides simple and basic terminal functionality for linux. (Work In Progress!)
+[![Crate](https://img.shields.io/crates/v/term-basics-linux.svg)](https://crates.io/crates/term-basics-linux)
 ## usage
 As the name is quite long, everything is put into module tbl, which is an acronym.
 To import this mod:
@@ -30,3 +31,11 @@ If you use them you application will match with the enviroment and other applica
 The user chose there colours for a reason and nobody likes inconsistent colours across applications.
 With all the fuss lately around GTK and distro's breaking themes for applications,
 this problem is easy to avoid with terminal applications by using the user's colours.
+## contribution
+You can always create issues and pull requests on github.
+You can aslo mail to codybloemhard@gmail.com
+## links
+This readme is used on multiple sites so some links might be redundant.
+[https://github.com/ocdy1001/term-basics-linux](https://github.com/ocdy1001/term-basics-linux)
+[https://crates.io/crates/term-basics-linux](https://crates.io/crates/term-basics-linux)
+[https://docs.rs/term-basics-linux/0.1.2/term_basics_linux/tbl/index.html](https://docs.rs/term-basics-linux/0.1.2/term_basics_linux/tbl/index.html)
