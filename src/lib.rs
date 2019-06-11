@@ -366,7 +366,7 @@ pub mod tbl{
             }
             return string;
         }
-        fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, pos: &mut usize){
+        fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, hstate: &mut u8, pos: &mut usize){
             let ch = ch as char;
             buff.insert(*pos, ch);
             if *pos != buff.len() - 1{
@@ -379,6 +379,7 @@ pub mod tbl{
             }else{
                 print!("{}", ch);
             }
+            *hstate = 0;
             *gstate = 0;
             *pos += 1;
         }
@@ -389,7 +390,9 @@ pub mod tbl{
 
         //set_colour(MsgType::Normal);
         loop {
-            match getch(){
+            let mut x = getch();
+            if x == 8 { x = 127; } //shift + backspace
+            match x{
                 10 => { print!("\n"); break; } //enter
                 127 => {  //backspace
                     if res.len() <= 0 { continue; }
@@ -412,17 +415,22 @@ pub mod tbl{
                 91 => { //2nd char in arrow code and home/end code and other char combos
                     if gstate == 1 { gstate = 2; }
                     if hoen_state == 1 { hoen_state = 2; }
+                    if gstate == 2 || hoen_state == 2 { continue; }
+                    typed_char(91, &mut res, &mut gstate, &mut hoen_state, &mut pos);
                 }
                 65 => { //up arrow 
-                    if gstate == 2 {}
-                    else { typed_char(65, &mut res, &mut gstate, &mut pos); }
+                    if gstate == 2 { gstate = 0; }
+                    else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
                 }
                 66 => { //down arrow 
-                    if gstate == 2 {}
-                    else { typed_char(66, &mut res, &mut gstate, &mut pos); }
+                    if gstate == 2 { gstate = 0; }
+                    else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
                 }
                 72 => { //home key
-                    if hoen_state != 2 { continue; }
+                    if hoen_state != 2 { 
+                        typed_char(72, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                        continue;
+                    }
                     for _ in 0..pos {
                         print!("{}", 8 as char);
                     }
@@ -431,9 +439,13 @@ pub mod tbl{
                 }
                 52 => { //end key 3e char
                     if hoen_state == 2 { hoen_state = 3; }
+                    else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
                 }
                 126 => { //end key
-                    if hoen_state != 3 { continue; }
+                    if hoen_state != 3 {
+                        typed_char(126, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                        continue;
+                    }
                     for _ in pos..res.len() {
                         print!("\x1B[1C");
                     }
@@ -441,7 +453,10 @@ pub mod tbl{
                     hoen_state = 0;
                 }
                 80 => { //delete key
-                    if gstate != 2 { continue; }
+                    if gstate != 2 { 
+                        typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                        continue;
+                    }
                     if pos == res.len() { continue; }
                     res.remove(pos);
                     let len = res.len() - pos;
@@ -452,6 +467,7 @@ pub mod tbl{
                     for _ in 0..len + 1{
                         print!("{}", 8 as char);
                     }
+                    gstate = 0;
                 }
                 67 => {  //right arrow
                     if gstate == 2 {
@@ -459,7 +475,7 @@ pub mod tbl{
                         gstate = 0;
                         pos = min(pos + 1, res.len());
                     }
-                    else { typed_char(67, &mut res, &mut gstate, &mut pos); }
+                    else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
                 }
                 68 => {  //left arrow
                     if gstate == 2 {
@@ -467,9 +483,9 @@ pub mod tbl{
                         gstate = 0;
                         pos = max(pos as i32 - 1, 0 as i32) as usize;
                     }
-                    else { typed_char(68, &mut res, &mut gstate, &mut pos); }
+                    else { typed_char(68, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
                 }
-                x => { typed_char(x, &mut res, &mut gstate, &mut pos); }
+                x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
             }
         }
         return charvec_to_string(&res);
