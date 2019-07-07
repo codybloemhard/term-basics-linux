@@ -490,6 +490,28 @@ pub mod tbl{
         }
         return charvec_to_string(&res);
     }
+
+    pub fn string_to_bool(string: &String) -> bool{
+        match string.as_ref(){
+            "y" => true,
+            "ye" => true,
+            "yes" => true,
+            "ok" => true,
+            "+" => true,
+            "t" => true,
+            "tr" => true,
+            "tru" => true,
+            "true" => true,
+            _ => false,
+        }
+    }
+    
+    pub fn string_to_int<T: std::str::FromStr>(string: &String) -> Option<T>{
+        let res = string.parse::<T>();
+        if res.is_err() { return Option::None; }
+        return res.ok();
+    }
+
     /// Prints a message to the user.
     /// The user can  type its input next to the message on the same line.
     /// It will return the user input after the user pressed enter.
