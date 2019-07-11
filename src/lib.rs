@@ -1,8 +1,33 @@
 #[cfg(test)]
 mod tests {
+    use super::tbl;
     #[test]
     fn it_works() {
         assert_eq!(2 + 2, 4);
+    }
+    #[test]
+    fn string_to_int0(){
+        let t: Option<u32> = tbl::string_to_int(&String::from("12981398"));
+        assert_eq!(t, Option::Some(12981398));
+    }
+    #[test]
+    fn string_to_int1(){
+        let t: Option<i32> = tbl::string_to_int(&String::from("-1234"));
+        assert_eq!(t, Option::Some(-1234));
+    }
+    #[test]
+    fn string_to_int2(){
+        let t: Option<u8> = tbl::string_to_int(&String::from("70000"));
+        assert_eq!(t, Option::None);
+    }
+    #[test]
+    fn string_to_int3(){
+        let t: Option<i32> = tbl::string_to_int(&String::from("23ohno23"));
+        assert_eq!(t, Option::None);
+    }
+    #[test]
+    fn string_to_bool0(){
+        assert_eq!(tbl::string_to_bool(&String::from("yes")), true);
     }
 }
 /// # Examples

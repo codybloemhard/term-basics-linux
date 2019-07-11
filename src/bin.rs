@@ -2,13 +2,6 @@ extern crate term_basics_linux;
 use term_basics_linux::tbl;
 
 pub fn main(){
-    println!("{}", tbl::string_to_bool(&String::from("yes")));
-    let t0: Option<u32> = tbl::string_to_int(&String::from("12981398"));
-    let t1: Option<i32> = tbl::string_to_int(&String::from("-1234"));
-    let t2: Option<u8> = tbl::string_to_int(&String::from("70000"));
-    let t3: Option<i32> = tbl::string_to_int(&String::from("23ohno23"));
-    println!("{:?},{:?},{:?},{:?}", t0,t1,t2,t3);
-    
     /*for sty in tbl::TextStyle::iterator(){
         for bg in tbl::UserColour::iterator(){
             for fg in tbl::UserColour::iterator(){
