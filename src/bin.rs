@@ -8,6 +8,7 @@ pub fn main(){
     let t2: Option<u8> = tbl::string_to_int(&String::from("70000"));
     let t3: Option<i32> = tbl::string_to_int(&String::from("23ohno23"));
     println!("{:?},{:?},{:?},{:?}", t0,t1,t2,t3);
+    
     /*for sty in tbl::TextStyle::iterator(){
         for bg in tbl::UserColour::iterator(){
             for fg in tbl::UserColour::iterator(){
@@ -81,6 +82,14 @@ fn test_all_colours_styles(){
             }
         }
     }
+}
+
+fn test_number_parse(){
+    use term_basics_linux::tbl;
+    let user_input = tbl::prompt("type your age: ");
+    let age: Option<u8> = tbl::string_to_int(&user_input);
+    if age.is_none() { println!("Invalid age!"); }
+    else { println!("Your age: {}", age.unwrap()); }
 }
 
 //documentation integration tests, that are not included above

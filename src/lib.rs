@@ -506,6 +506,18 @@ pub mod tbl{
         }
     }
     
+    /// Small helper to parse string to int
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// let user_input = tbl::prompt("type your age: ");
+    /// let age: Option<u8> = tbl::string_to_int(&user_input);
+    /// if age.is_none() { println!("Invalid age!"); }
+    /// else { println!("Your age: {}", age.unwrap()); }
+    /// ```
+
     pub fn string_to_int<T: std::str::FromStr>(string: &String) -> Option<T>{
         let res = string.parse::<T>();
         if res.is_err() { return Option::None; }
