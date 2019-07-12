@@ -55,11 +55,29 @@ pub mod tbl{
     use num_derive::ToPrimitive;
     use num_traits::ToPrimitive;
     use std::slice::Iter;
+    #[feature(integer_atomics)]
+    use std::sync::atomic::AtomicU8;
+    use std::sync::atomic::Ordering;
+
+    static FG_COL: AtomicU8 = AtomicU8::new(9);
+    static BG_COL: AtomicU8 = AtomicU8::new(9);
+    /// Resets foreground colour, background colour and text style.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux::tbl;
+    /// tbl::reset_all();
+    /// ```
+    pub fn reset_all(){
+        print!("\x1B[00m");
+    }
+
     /// Colours available. The user has defined the exact values of 
     /// these colours for there TTY or emulator.
     #[derive(PartialEq,Eq,Clone,ToPrimitive)]
     pub enum UserColour {
-        Std     = 99,
+        Std     = 9,
         Black   = 0,
         Red     = 1,
         Green   = 2,
@@ -119,7 +137,7 @@ pub mod tbl{
     impl TextStyle {
         pub fn iterator() -> Iter<'static, Self> {
             static ARR: [TextStyle; 8] = [
-                TextStyle::Std, 
+                TextStyle::Std,
                 TextStyle::Bold,
                 TextStyle::Faint,
                 TextStyle::Italic,
@@ -153,17 +171,16 @@ pub mod tbl{
     /// }
     /// ```
     pub fn set_colour(col: UserColour, fgbg: FGBG){
-        if col == UserColour::Std{
-            print!("\x1B[00m");
-        }
         let _id = ToPrimitive::to_u8(&col);
         let mut id = 0;
         if _id.is_some() { id = _id.unwrap(); }
         let mut colorcode = String::from("\x1B[");
         if fgbg == FGBG::FG {
             colorcode.push('3');
+            FG_COL.store(id, Ordering::Relaxed);
         }else{
             colorcode.push('4');
+            BG_COL.store(id, Ordering::Relaxed);
         }
         colorcode.push_str(&format!("{}", id));
         colorcode.push_str("m");
@@ -203,10 +220,13 @@ pub mod tbl{
         let _id = ToPrimitive::to_u8(&sty);
         let mut id = 0;
         if _id.is_some() { id = _id.unwrap(); }
+        print!("\x1B[00m");
         let mut colorcode = String::from("\x1B[0");
         colorcode.push_str(&format!("{}", id));
         colorcode.push_str("m");
         print!("{}", colorcode);
+        print!("\x1B[3{}m", FG_COL.load(Ordering::Relaxed));
+        print!("\x1B[4{}m", BG_COL.load(Ordering::Relaxed));
     }
     /// Print to stdout, it is just  print!("{}", msg);
     /// Here to stay consistent
