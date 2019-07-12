@@ -55,7 +55,6 @@ pub mod tbl{
     use num_derive::ToPrimitive;
     use num_traits::ToPrimitive;
     use std::slice::Iter;
-    #[feature(integer_atomics)]
     use std::sync::atomic::AtomicU8;
     use std::sync::atomic::Ordering;
 
