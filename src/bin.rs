@@ -83,7 +83,7 @@ fn test_all_colours_styles(){
 fn test_number_parse(){
     use term_basics_linux::tbl;
     let user_input = tbl::prompt("type your age: ");
-    let age: Option<u8> = tbl::string_to_int(&user_input);
+    let age: Option<u8> = tbl::string_to_value(&user_input);
     if age.is_none() { println!("Invalid age!"); }
     else { println!("Your age: {}", age.unwrap()); }
 }

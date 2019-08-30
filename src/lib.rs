@@ -7,27 +7,47 @@ mod tests {
     }
     #[test]
     fn string_to_int0(){
-        let t: Option<u32> = tbl::string_to_int(&String::from("12981398"));
+        let t: Option<u32> = tbl::string_to_value(&String::from("12981398"));
         assert_eq!(t, Option::Some(12981398));
     }
     #[test]
     fn string_to_int1(){
-        let t: Option<i32> = tbl::string_to_int(&String::from("-1234"));
+        let t: Option<i32> = tbl::string_to_value(&String::from("-1234"));
         assert_eq!(t, Option::Some(-1234));
     }
     #[test]
     fn string_to_int2(){
-        let t: Option<u8> = tbl::string_to_int(&String::from("70000"));
+        let t: Option<u8> = tbl::string_to_value(&String::from("70000"));
         assert_eq!(t, Option::None);
     }
     #[test]
     fn string_to_int3(){
-        let t: Option<i32> = tbl::string_to_int(&String::from("23ohno23"));
+        let t: Option<i32> = tbl::string_to_value(&String::from("23ohno23"));
         assert_eq!(t, Option::None);
+    }
+    #[test]
+    fn string_to_float0(){
+        let t: Option<f32> = tbl::string_to_value(&String::from("34.5"));
+        assert_eq!(t, Option::Some(34.5));
+    }
+    #[test]
+    fn string_to_float1(){
+        let t: Option<f64> = tbl::string_to_value(&String::from("-0.00000000000001"));
+        assert_eq!(t, Option::Some(-0.00000000000001));
     }
     #[test]
     fn string_to_bool0(){
         assert_eq!(tbl::string_to_bool(&String::from("yes")), true);
+    }
+    #[test]
+    fn string_to_bool1(){
+        let t: Option<bool> = tbl::string_to_value(&String::from("true"));
+        assert_eq!(t, Option::Some(true));
+    }
+    #[test]
+    fn string_to_bool2(){
+        let t: Option<bool> = tbl::string_to_value(&String::from("false"));
+        assert_eq!(t, Option::Some(false));
     }
 }
 /// # Examples
@@ -550,7 +570,7 @@ pub mod tbl{
         }
     }
     
-    /// Small helper to parse string to int
+    /// Small helper to parse string to a value
     /// 
     /// # Example
     /// 
@@ -561,8 +581,8 @@ pub mod tbl{
     /// if age.is_none() { println!("Invalid age!"); }
     /// else { println!("Your age: {}", age.unwrap()); }
     /// ```
-
-    pub fn string_to_int<T: std::str::FromStr>(string: &String) -> Option<T>{
+    /// Uses ```string.parse::<T>();```
+    pub fn string_to_value<T: std::str::FromStr>(string: &String) -> Option<T>{
         let res = string.parse::<T>();
         if res.is_err() { return Option::None; }
         return res.ok();
@@ -586,26 +606,4 @@ pub mod tbl{
         std::io::stdout().flush().expect("Error: stdout flush failed.");
         return input_field();
     }
-
-    /*pub fn read_bool(msg: &str, inputs: &mut Option<VecDeque<astr::Astr>>) -> bool{
-        let line;
-        if inputs.is_none(){line = prompt(&msg);}
-        else{
-            let res = inputs.as_mut().unwrap().pop_front();
-            if res.is_none(){line = prompt(&msg);}
-            else {line = res.unwrap().tostring();}
-        }
-        match line.as_ref(){
-            "y" => true,
-            "ye" => true,
-            "yes" => true,
-            "ok" => true,
-            "+" => true,
-            "t" => true,
-            "tr" => true,
-            "tru" => true,
-            "true" => true,
-            _ => false,
-        }
-    }*/
 }
