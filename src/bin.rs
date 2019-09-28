@@ -1,5 +1,5 @@
 extern crate term_basics_linux;
-use term_basics_linux::tbl;
+use term_basics_linux as tbl;
 
 pub fn main(){
 
@@ -45,7 +45,7 @@ fn test_set_style(){
 }
 
 fn test_set_colours(){
-    use term_basics_linux::tbl;
+    use term_basics_linux as tbl;
     for fg in tbl::UserColour::iterator(){
         for bg in tbl::UserColour::iterator(){
             tbl::set_colours(fg.clone(), bg.clone());
@@ -55,7 +55,7 @@ fn test_set_colours(){
 }
 
 fn test_all_colours_styles(){
-    use term_basics_linux::tbl;
+    use term_basics_linux as tbl;
     //can be set in any ordering
     for sty in tbl::TextStyle::iterator(){
         for bg in tbl::UserColour::iterator(){
@@ -81,7 +81,7 @@ fn test_all_colours_styles(){
 }
 
 fn test_number_parse(){
-    use term_basics_linux::tbl;
+    use term_basics_linux as tbl;
     let user_input = tbl::prompt("type your age: ");
     let age: Option<u8> = tbl::string_to_value(&user_input);
     if age.is_none() { println!("Invalid age!"); }
