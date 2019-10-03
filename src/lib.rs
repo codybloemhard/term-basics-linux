@@ -75,7 +75,7 @@ use num_traits::ToPrimitive;
 use std::slice::Iter;
 use std::sync::atomic::AtomicU8;
 use std::sync::atomic::Ordering;
-use std::fmt;
+use std::env;
 
 static FG_COL: AtomicU8 = AtomicU8::new(9);
 static BG_COL: AtomicU8 = AtomicU8::new(9);
@@ -600,9 +600,27 @@ pub fn string_to_value<T: std::str::FromStr>(string: &String) -> Option<T>{
 /// tbl::print("Your name: ");
 /// tbl::println(name);
 /// ```
+
 pub fn prompt(msg : &str) -> String{
     print(msg);
     std::io::stdout().flush().expect("Error: stdout flush failed.");
     return input_field();
 }
-
+/// Returns the home directory of the user
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// println!("{:?}", tbl::get_home());
+/// ```
+/// It returns the same as:
+/// ```
+/// echo "$HOME"
+/// ```
+pub fn get_home() -> Option<String>{
+    match env::var("HOME"){
+        Ok(val) => return Option::Some(val),
+        Err(_e) => return Option::None,
+    }
+}

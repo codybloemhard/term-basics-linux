@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-
+    println!("{:?}", tbl::get_home());
 }
 
 fn test_getch(){
