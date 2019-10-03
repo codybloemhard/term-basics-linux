@@ -600,14 +600,33 @@ pub fn string_to_value<T: std::str::FromStr>(string: &String) -> Option<T>{
 /// tbl::print("Your name: ");
 /// tbl::println(name);
 /// ```
-
 pub fn prompt(msg : &str) -> String{
     print(msg);
     std::io::stdout().flush().expect("Error: stdout flush failed.");
     return input_field();
 }
-/// Returns the home directory of the user
+
+/// Returns the home directory of the user as a String.
 /// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// println!("{:?}", tbl::get_home_string());
+/// ```
+/// It returns the same as:
+/// ```
+/// echo "$HOME"
+/// ```
+pub fn get_home_string() -> Option<String>{
+    match env::var("HOME"){
+        Ok(val) => Option::Some(val),
+        Err(_e) => Option::None,
+    }
+}
+
+/// Returns the home directory of the user as a std::path::PathBuf.
+/// /// 
 /// # Example
 /// 
 /// ```
@@ -618,9 +637,9 @@ pub fn prompt(msg : &str) -> String{
 /// ```
 /// echo "$HOME"
 /// ```
-pub fn get_home() -> Option<String>{
+pub fn get_home() -> Option<std::path::PathBuf>{
     match env::var("HOME"){
-        Ok(val) => return Option::Some(val),
-        Err(_e) => return Option::None,
+        Ok(val) => Option::Some(std::path::PathBuf::from(val)),
+        Err(_e) => Option::None,
     }
 }

@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    println!("{:?}", tbl::get_home());
+    test_get_home();
 }
 
 fn test_getch(){
@@ -97,4 +97,12 @@ fn test_getch_docu(){
         if x == 32 { break; }
         print!("{}", x as char);
     }
+}
+
+fn test_get_home_string(){
+    println!("{:?}", tbl::get_home_string());
+}
+
+fn test_get_home(){
+    println!("{:?}", tbl::get_home());
 }
