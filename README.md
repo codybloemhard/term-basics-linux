@@ -3,12 +3,11 @@
 # term-basics-linux
 Rust crate libary that provides simple and basic terminal functionality for linux. (Work In Progress!)
 ## usage
-As the name is quite long, everything is put into module tbl, which is an acronym.
-To import this mod:
-```use term_basics_linux::tbl;```
+As the name is quite long, you can do something like this:
+```use term_basics_linux as tbl;```
 After that you can use the crate:
 ```let name = tbl::prompt("type your name: ");```
-It is recommended to use the ```tbl::``` notation, just like you would not use
+It is recommended to use the ```tbl::``` notation or similar, just like you would not use
 ```using namespace std;``` in c++.
 ### examples
 The main feature of this crate is the input field, supporting editing your input text with function keys like backspace, delete, home, end, arrows.
