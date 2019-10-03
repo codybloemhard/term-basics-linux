@@ -76,6 +76,7 @@ use std::slice::Iter;
 use std::sync::atomic::AtomicU8;
 use std::sync::atomic::Ordering;
 use std::env;
+use std::path::{Path,PathBuf};
 
 static FG_COL: AtomicU8 = AtomicU8::new(9);
 static BG_COL: AtomicU8 = AtomicU8::new(9);
@@ -626,7 +627,7 @@ pub fn get_home_string() -> Option<String>{
 }
 
 /// Returns the home directory of the user as a std::path::PathBuf.
-/// /// 
+///
 /// # Example
 /// 
 /// ```
@@ -637,9 +638,27 @@ pub fn get_home_string() -> Option<String>{
 /// ```
 /// echo "$HOME"
 /// ```
-pub fn get_home() -> Option<std::path::PathBuf>{
+pub fn get_home() -> Option<PathBuf>{
     match env::var("HOME"){
-        Ok(val) => Option::Some(std::path::PathBuf::from(val)),
+        Ok(val) => Option::Some(PathBuf::from(val)),
         Err(_e) => Option::None,
+    }
+}
+
+/// Returns true if the file exists, false if not.
+/// Directories are also files on unix.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// //asuming home is set and will return a value
+/// tbl::println(tbl::file_exists(tbl::get_home().unwrap().as_path()));
+/// ```
+pub fn file_exists(path: &Path) -> bool{
+    let metadata = std::fs::metadata(path);
+    match metadata{
+        Ok(_x) => true,
+        Err(_y) => false,
     }
 }

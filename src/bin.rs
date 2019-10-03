@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_get_home();
+    test_file_exist();
 }
 
 fn test_getch(){
@@ -105,4 +105,9 @@ fn test_get_home_string(){
 
 fn test_get_home(){
     println!("{:?}", tbl::get_home());
+}
+
+fn test_file_exist(){
+    use term_basics_linux as tbl;
+    tbl::println(tbl::file_exists(tbl::get_home().unwrap().as_path()));
 }
