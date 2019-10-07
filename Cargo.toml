@@ -1,6 +1,6 @@
 [package]
 name = "term-basics-linux"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Cody Bloemhard <codybloemhard@gmail.com>"]
 edition = "2018"
 description = "A simple crate with basic functionality for terminal applications."
