@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_get_config();
+    
 }
 
 fn test_getch(){
@@ -97,30 +97,4 @@ fn test_getch_docu(){
         if x == 32 { break; }
         print!("{}", x as char);
     }
-}
-
-fn test_get_home_string(){
-    println!("{:?}", tbl::get_home_string());
-}
-
-fn test_get_home(){
-    println!("{:?}", tbl::get_home());
-}
-
-fn test_file_exist(){
-    use term_basics_linux as tbl;
-    tbl::println(tbl::file_exists(tbl::get_home().unwrap().as_path()));
-}
-
-fn test_create_dir(){
-    use term_basics_linux as tbl;
-    match tbl::create_dir(tbl::get_home().unwrap().as_path()){
-        tbl::DirStatus::Exists => tbl::println("Home exists."),
-        tbl::DirStatus::Created => tbl::println("Home created."),
-        tbl::DirStatus::Error => tbl::println("Home could not be created."),
-    }
-}
-
-fn test_get_config(){
-    println!("{:?}", tbl::get_config());
 }
