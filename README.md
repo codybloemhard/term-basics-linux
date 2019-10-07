@@ -38,4 +38,4 @@ You can aslo mail to codybloemhard@gmail.com
 This readme is used on multiple sites so some links might be redundant.
 * [https://github.com/ocdy1001/term-basics-linux](https://github.com/ocdy1001/term-basics-linux)
 * [https://crates.io/crates/term-basics-linux](https://crates.io/crates/term-basics-linux)
-* [https://docs.rs/term-basics-linux/0.1.2/term_basics_linux/tbl/index.html](https://docs.rs/term-basics-linux/0.1.2/term_basics_linux/tbl/index.html)
+* [https://docs.rs/term-basics-linux/](https://docs.rs/term-basics-linux/)
