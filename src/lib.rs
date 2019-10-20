@@ -586,6 +586,25 @@ pub fn string_to_value<T: std::str::FromStr>(string: &String) -> Option<T>{
     return res.ok();
 }
 
+/// Flushes stdout. 
+/// When you do print! or term-basics-linux equivalent, it will not print immediately.
+/// For example if you print! and then input_field(), it will print after you typed in the input.
+/// flush() will make sure everything is printed first.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// print("type: ");
+/// flush().expect("oh no");
+/// let x = input_field();
+/// ```
+/// 
+/// This example is the same as ``` let x = tbl::prompt("type: "); ```
+pub fn flush() -> io::Result<()>{
+    std::io::stdout().flush()
+}
+
 /// Prints a message to the user.
 /// The user can  type its input next to the message on the same line.
 /// It will return the user input after the user pressed enter.
@@ -601,6 +620,6 @@ pub fn string_to_value<T: std::str::FromStr>(string: &String) -> Option<T>{
 /// ```
 pub fn prompt(msg : &str) -> String{
     print(msg);
-    std::io::stdout().flush().expect("Error: stdout flush failed.");
+    flush().expect("Error: stdout flush failed.");
     return input_field();
 }
