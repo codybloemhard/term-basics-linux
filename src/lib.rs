@@ -126,7 +126,7 @@ impl UserColour {
             UserColour::Magenta,
             UserColour::Cyan,
             UserColour::Grey];
-        ARR.into_iter()
+        ARR.iter()
     }
 }
 /// All styles that do not alter fg or bg colours.
@@ -162,7 +162,7 @@ impl TextStyle {
             TextStyle::Blink,
             TextStyle::Hidden,
             TextStyle::Crossed];
-        ARR.into_iter()
+        ARR.iter()
     }
 }
 /// To specify if you set the foreground or background colour.
