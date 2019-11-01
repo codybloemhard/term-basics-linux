@@ -126,7 +126,7 @@ impl UserColour {
             UserColour::Magenta,
             UserColour::Cyan,
             UserColour::Grey];
-        ARR.into_iter()
+        ARR.iter()
     }
 }
 /// All styles that do not alter fg or bg colours.
@@ -162,7 +162,7 @@ impl TextStyle {
             TextStyle::Blink,
             TextStyle::Hidden,
             TextStyle::Crossed];
-        ARR.into_iter()
+        ARR.iter()
     }
 }
 /// To specify if you set the foreground or background colour.
@@ -190,7 +190,7 @@ pub enum FGBG { FG, BG }
 pub fn set_colour(col: UserColour, fgbg: FGBG){
     let _id = ToPrimitive::to_u8(&col);
     let mut id = 0;
-    if _id.is_some() { id = _id.unwrap(); }
+    if let Some(_idv) = _id { id = _idv; }
     let mut colorcode = String::from("\x1B[");
     if fgbg == FGBG::FG {
         colorcode.push('3');
@@ -236,7 +236,7 @@ pub fn set_colours(fg: UserColour, bg: UserColour){
 pub fn set_style(sty: TextStyle){
     let _id = ToPrimitive::to_u8(&sty);
     let mut id = 0;
-    if _id.is_some() { id = _id.unwrap(); }
+    if let Some(_idv) = _id { id = _idv; }
     print!("\x1B[00m");
     let mut colorcode = String::from("\x1B[0");
     colorcode.push_str(&format!("{}", id));
@@ -385,16 +385,16 @@ pub fn getch() -> u8{
     //https://stackoverflow.com/questions/26321592/how-can-i-read-one-character-from-stdin-without-having-to-hit-enter
     let stdin = 0;
     let termios = Termios::from_fd(stdin).unwrap();
-    let mut new_termios = termios.clone();
+    let mut new_termios = termios;
     new_termios.c_lflag &= !(ICANON | ECHO);
-    tcsetattr(stdin, TCSANOW, &mut new_termios).unwrap();
+    tcsetattr(stdin, TCSANOW, &new_termios).unwrap();
     let stdout = io::stdout();
     let mut reader = io::stdin();
     let mut buffer = [0;1];
     stdout.lock().flush().unwrap();
     reader.read_exact(&mut buffer).unwrap();
     tcsetattr(stdin, TCSANOW, & termios).unwrap();
-    return buffer[0];
+    buffer[0]
 }
 /// Prints the result of getch as u8, infinite loop. Can be used for testing.
 /// 
@@ -406,7 +406,7 @@ pub fn getch() -> u8{
 /// ```
 pub fn test_chars(){
     loop {
-        print!("{:?}\n", getch());
+        println!("{:?}", getch());
     }
 }
 /// Lets the user type text. It returns the string after the user presses 'enter'.
@@ -421,19 +421,19 @@ pub fn test_chars(){
 /// let user_input = tbl::input_field();
 /// ```
 pub fn input_field() -> String{
-    fn charvec_to_string(vec: &Vec<char>) -> String{
+    fn charvec_to_string(vec: &[char]) -> String{
         let mut string = String::new();
         for &ch in vec {
             string.push(ch);
         }
-        return string;
+        string
     }
     fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, hstate: &mut u8, pos: &mut usize){
         let ch = ch as char;
         buff.insert(*pos, ch);
         if *pos != buff.len() - 1{
-            for i in *pos..buff.len(){
-                print!("{}", buff[i]);
+            for item in buff.iter().skip(*pos){
+                print!("{}", item);
             }
             for _ in  *pos..buff.len()-1{
                 print!("{}", 8 as char);
@@ -455,11 +455,11 @@ pub fn input_field() -> String{
         let mut x = getch();
         if x == 8 { x = 127; } //shift + backspace
         match x{
-            10 => { print!("\n"); break; } //enter
+            10 => { println!(); break; } //enter
             127 => {  //backspace
-                if res.len() <= 0 { continue; }
+                if res.is_empty() { continue; }
                 res.pop();
-                for _ in 0..res.len() + 1 {
+                for _ in 0..=res.len() {
                     print!("{}", 8 as char);
                 }
                 let mut printres = res.clone();
@@ -522,11 +522,11 @@ pub fn input_field() -> String{
                 if pos == res.len() { continue; }
                 res.remove(pos);
                 let len = res.len() - pos;
-                for i in pos..res.len(){
-                    print!("{}", res[i]);
+                for ch in res.iter().skip(pos){
+                    print!("{}", ch);
                 }
                 print!(" ");
-                for _ in 0..len + 1{
+                for _ in 0..=len{
                     print!("{}", 8 as char);
                 }
                 gstate = 0;
@@ -550,11 +550,11 @@ pub fn input_field() -> String{
             x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
         }
     }
-    return charvec_to_string(&res);
+    charvec_to_string(&res)
 }
 
-pub fn string_to_bool(string: &String) -> bool{
-    match string.as_ref(){
+pub fn string_to_bool(string: &str) -> bool{
+    match string{
         "y" => true,
         "ye" => true,
         "yes" => true,
@@ -580,10 +580,10 @@ pub fn string_to_bool(string: &String) -> bool{
 /// else { println!("Your age: {}", age.unwrap()); }
 /// ```
 /// Uses ```string.parse::<T>();```
-pub fn string_to_value<T: std::str::FromStr>(string: &String) -> Option<T>{
+pub fn string_to_value<T: std::str::FromStr>(string: &str) -> Option<T>{
     let res = string.parse::<T>();
     if res.is_err() { return Option::None; }
-    return res.ok();
+    res.ok()
 }
 
 /// Flushes stdout. 
@@ -621,5 +621,5 @@ pub fn flush() -> io::Result<()>{
 pub fn prompt(msg : &str) -> String{
     print(msg);
     flush().expect("Error: stdout flush failed.");
-    return input_field();
+    input_field()
 }

@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    
+    test_prompt();
 }
 
 fn test_getch(){
@@ -84,8 +84,8 @@ fn test_number_parse(){
     use term_basics_linux as tbl;
     let user_input = tbl::prompt("type your age: ");
     let age: Option<u8> = tbl::string_to_value(&user_input);
-    if age.is_none() { println!("Invalid age!"); }
-    else { println!("Your age: {}", age.unwrap()); }
+    if let Some(agev) = age { println!("Your age: {}", agev); }
+    else { println!("Invalid age!"); }
 }
 
 //documentation integration tests, that are not included above
