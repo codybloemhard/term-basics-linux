@@ -33,7 +33,7 @@ With all the fuss lately around GTK and distro's breaking themes for application
 this problem is easy to avoid with terminal applications by using the user's colours.
 ## contribution
 You can always create issues and pull requests on github.
-You can aslo mail to codybloemhard@gmail.com
+You can also mail to codybloemhard@gmail.com
 ## links
 This readme is used on multiple sites so some links might be redundant.
 * [https://github.com/ocdy1001/term-basics-linux](https://github.com/ocdy1001/term-basics-linux)

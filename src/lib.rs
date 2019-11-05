@@ -75,6 +75,7 @@ use num_traits::ToPrimitive;
 use std::slice::Iter;
 use std::sync::atomic::AtomicU8;
 use std::sync::atomic::Ordering;
+use std::collections::VecDeque;
 
 static FG_COL: AtomicU8 = AtomicU8::new(9);
 static BG_COL: AtomicU8 = AtomicU8::new(9);
@@ -409,6 +410,37 @@ pub fn test_chars(){
         println!("{:?}", getch());
     }
 }
+
+pub struct InputHistory{
+    history: VecDeque<String>,
+    maxlen: usize,
+}
+
+impl InputHistory{
+    pub fn new(maxlen: usize) -> Self{
+        Self{
+            history: VecDeque::new(),
+            maxlen
+        }
+    }
+
+    pub fn trim(&mut self){
+        self.history.truncate(self.maxlen);
+    }
+
+    pub fn add(&mut self, string: &String){
+        self.history.push_back(string.clone());
+        self.trim();
+    }
+
+    pub fn get_index(&self, mut index: i32) -> Option<&String>{
+        if self.history.len() != 0 {
+            index %= self.history.len() as i32;
+        }
+        self.history.get(index as usize)
+    }
+}
+
 /// Lets the user type text. It returns the string after the user presses 'enter'.
 /// It supports moving the cursor with the arrow keys, 
 /// going to the begin and end of the line using 'home' and 'end'
@@ -421,6 +453,10 @@ pub fn test_chars(){
 /// let user_input = tbl::input_field();
 /// ```
 pub fn input_field() -> String{
+    input_field_scrollable(&mut InputHistory::new(0))
+}
+
+pub fn input_field_scrollable(history: &mut InputHistory) -> String{
     fn charvec_to_string(vec: &[char]) -> String{
         let mut string = String::new();
         for &ch in vec {
@@ -445,10 +481,23 @@ pub fn input_field() -> String{
         *gstate = 0;
         *pos += 1;
     }
+    fn delete_all(buff: &mut Vec<char>){
+        for _ in 0..buff.len(){
+            print!("{}", 8 as char);
+        }
+        buff.clear();
+    }
+    fn feed_into_buffer(buff: &mut Vec<char>, string: &str){
+        for ch in string.chars(){
+            buff.push(ch);
+        }
+    }
+
     let mut res = Vec::new();
     let mut gstate: u8 = 0;
     let mut hoen_state: u8 = 0;
     let mut pos = 0;
+    let mut his_index: i32 = 0;
 
     //set_colour(MsgType::Normal);
     loop {
@@ -480,12 +529,28 @@ pub fn input_field() -> String{
                 if gstate == 2 || hoen_state == 2 { continue; }
                 typed_char(91, &mut res, &mut gstate, &mut hoen_state, &mut pos);
             }
-            65 => { //up arrow 
-                if gstate == 2 { gstate = 0; }
+            65 => { //up arrow
+                if gstate == 2 {
+                    gstate = 0; 
+                    his_index += 1;
+                    let val = history.get_index(his_index);
+                    if let Some(valv) = val{
+                        delete_all(&mut res);
+                        feed_into_buffer(&mut res, valv);
+                    }
+                }
                 else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
             }
-            66 => { //down arrow 
-                if gstate == 2 { gstate = 0; }
+            66 => { //down arrow
+                if gstate == 2 {
+                    gstate = 0; 
+                    his_index -= 1;
+                    let val = history.get_index(his_index);
+                    if let Some(valv) = val{
+                        delete_all(&mut res);
+                        feed_into_buffer(&mut res, valv);
+                    }
+                }
                 else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
             }
             72 => { //home key
