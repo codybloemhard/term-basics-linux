@@ -507,17 +507,19 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
             10 => { println!(); break; } //enter
             127 => {  //backspace
                 if res.is_empty() { continue; }
-                res.pop();
-                for _ in 0..=res.len() {
+                if pos <= 0 { continue; }
+                res.remove(pos - 1);
+                print!("{}", 8 as char);
+                //print!("\x1B[1D"); //also works*/
+                for item in res.iter().skip(pos-1){
+                    print!("{}", item);
+                }
+                print!(" ");
+                for _ in pos-1..res.len()+1{
                     print!("{}", 8 as char);
                 }
-                let mut printres = res.clone();
-                printres.push(' ');
-                print(charvec_to_string(&printres));
-                print!("{}", 8 as char);
-                //print!("\x1B[1D"); //also works
+                pos -= 1;
                 gstate = 0;
-                pos = res.len();
             }
             27 => { //first char in arrow code and home/end code and other char combos
                 gstate = 1;
