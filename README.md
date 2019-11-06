@@ -1,5 +1,5 @@
 [![Crate](https://img.shields.io/crates/v/term-basics-linux.svg)](https://crates.io/crates/term-basics-linux)
-[![API](https://img.shields.io/crates/v/term-basics-linux.svg?color=blue&label=docs)](https://docs.rs/term-basics-linux/0.2.1/term_basics_linux/tbl/index.html)
+[![API](https://img.shields.io/crates/v/term-basics-linux.svg?color=blue&label=docs)](https://docs.rs/term-basics-linux/)
 # term-basics-linux
 Rust crate libary that provides simple and basic terminal functionality for linux. (Work In Progress!)
 ## usage
@@ -34,6 +34,13 @@ this problem is easy to avoid with terminal applications by using the user's col
 ## contribution
 You can always create issues and pull requests on github.
 You can also mail to codybloemhard@gmail.com
+### keycodes
+Sometimes different terminal emulators use different codes for certain keys like delete or end.
+For example, backspace is 127 on both suckless simple terminal (ST) and the build in terminal emulator in vscode.
+But delete is 27-91-80 on ST and 27-91-51-126 on vscode. End is 27-91-52-126 on ST and 27-91-70 on vscode.
+If you encounter a non-supported key code, please open an issue on github with the function key(delete,end,etc) and what platform(terminal emulator) you run.
+The ```test_chars``` function can help look up what key code it is on your platform. It is helpfull to to supply that information.
+Ofcourse you can also make a pull request.
 ## links
 This readme is used on multiple sites so some links might be redundant.
 * [https://github.com/ocdy1001/term-basics-linux](https://github.com/ocdy1001/term-basics-linux)
