@@ -481,15 +481,36 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
         *gstate = 0;
         *pos += 1;
     }
-    fn delete_all(buff: &mut Vec<char>){
+    fn delete_all(buff: &mut Vec<char>) -> usize{
         for _ in 0..buff.len(){
             print!("{}", 8 as char);
         }
+        let len = buff.len();
         buff.clear();
+        len
     }
     fn feed_into_buffer(buff: &mut Vec<char>, string: &str){
         for ch in string.chars(){
             buff.push(ch);
+        }
+    }
+    fn write_all(buff: &Vec<char>){
+        for item in buff.iter(){
+            print!("{}", item);
+        }
+    }
+    fn scroll_action(res: &mut Vec<char>, newstr: &str, pos: &mut usize){
+        let old_len = delete_all(res);
+        feed_into_buffer(res, newstr);
+        write_all(&res);
+        *pos = res.len();
+        let diff = old_len as i32 - res.len() as i32;
+        if diff <= 0 { return; }
+        for _ in 0..diff{
+            print!(" ");
+        }
+        for _ in 0..diff{
+            print!("{}", 8 as char);
         }
     }
     fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8){
@@ -557,8 +578,7 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                     his_index += 1;
                     let val = history.get_index(his_index);
                     if let Some(valv) = val{
-                        delete_all(&mut res);
-                        feed_into_buffer(&mut res, valv);
+                        scroll_action(&mut res, valv, &mut pos);
                     }
                 }
                 else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
@@ -569,8 +589,7 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                     his_index -= 1;
                     let val = history.get_index(his_index);
                     if let Some(valv) = val{
-                        delete_all(&mut res);
-                        feed_into_buffer(&mut res, valv);
+                        scroll_action(&mut res, valv, &mut pos);
                     }
                 }
                 else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
@@ -644,7 +663,9 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
             x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
         }
     }
-    charvec_to_string(&res)
+    let string = charvec_to_string(&res);
+    history.add(&string);
+    string
 }
 
 pub fn string_to_bool(string: &str) -> bool{

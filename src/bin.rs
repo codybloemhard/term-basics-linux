@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_prompt();
+    input_field_scrollable();
 }
 
 fn test_getch(){
@@ -16,6 +16,15 @@ fn test_test_chars(){
 
 fn test_input_field(){
     tbl::println(tbl::input_field());
+}
+
+fn input_field_scrollable(){
+    let mut his = tbl::InputHistory::new(100);
+    his.add(&"l".to_string());
+    his.add(&"third".to_string());
+    his.add(&"second".to_string());
+    his.add(&"first".to_string());
+    tbl::println(tbl::input_field_scrollable(&mut his));
 }
 
 fn test_prompt(){
