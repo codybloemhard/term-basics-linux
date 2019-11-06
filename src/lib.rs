@@ -510,7 +510,7 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                 if pos <= 0 { continue; }
                 res.remove(pos - 1);
                 print!("{}", 8 as char);
-                //print!("\x1B[1D"); //also works*/
+                //print!("\x1B[1D"); //also works
                 for item in res.iter().skip(pos-1){
                     print!("{}", item);
                 }
@@ -586,14 +586,14 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                     typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos);
                     continue;
                 }
-                if pos == res.len() { continue; }
+                if res.is_empty() { continue; }
+                if pos >= res.len() - 1 { continue; }
                 res.remove(pos);
-                let len = res.len() - pos;
-                for ch in res.iter().skip(pos){
-                    print!("{}", ch);
+                for item in res.iter().skip(pos){
+                    print!("{}", item);
                 }
                 print!(" ");
-                for _ in 0..=len{
+                for _ in pos..res.len()+1{
                     print!("{}", 8 as char);
                 }
                 gstate = 0;
