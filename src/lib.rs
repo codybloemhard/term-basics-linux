@@ -492,6 +492,19 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
             buff.push(ch);
         }
     }
+    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8){
+        if res.is_empty() { return; }
+        if *pos >= res.len() - 1 { return; }
+        res.remove(*pos);
+        for item in res.iter().skip(*pos){
+            print!("{}", item);
+        }
+        print!(" ");
+        for _ in *pos..res.len()+1{
+            print!("{}", 8 as char);
+        }
+        *gstate = 0;
+    }
 
     let mut res = Vec::new();
     let mut gstate: u8 = 0;
@@ -566,37 +579,40 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                 pos = 0;
                 hoen_state = 0;
             }
+            51 => {
+                if gstate != 2 {
+                    typed_char(51, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                }
+                else {
+                    gstate = 3;
+                }
+            }
             52 => { //end key 3e char
                 if hoen_state == 2 { hoen_state = 3; }
                 else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
             }
-            126 => { //end key
-                if hoen_state != 3 {
+            126 => { //end(27-91-52-126) or delete(27-91-51-126)
+                if hoen_state == 3 { //end
+                    for _ in pos..res.len() {
+                        print!("\x1B[1C");
+                    }
+                    pos = res.len();
+                    hoen_state = 0;
+                }
+                else if gstate >= 2{ //delete
+                    delete(&mut res, &mut pos, &mut gstate);
+                }
+                else {
                     typed_char(126, &mut res, &mut gstate, &mut hoen_state, &mut pos);
-                    continue;
                 }
-                for _ in pos..res.len() {
-                    print!("\x1B[1C");
-                }
-                pos = res.len();
-                hoen_state = 0;
+                
             }
-            80 => { //delete key
+            80 => { //delete key with code 27-91-80
                 if gstate != 2 { 
                     typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos);
                     continue;
                 }
-                if res.is_empty() { continue; }
-                if pos >= res.len() - 1 { continue; }
-                res.remove(pos);
-                for item in res.iter().skip(pos){
-                    print!("{}", item);
-                }
-                print!(" ");
-                for _ in pos..res.len()+1{
-                    print!("{}", 8 as char);
-                }
-                gstate = 0;
+                delete(&mut res, &mut pos, &mut gstate);
             }
             67 => {  //right arrow
                 if gstate == 2 {
