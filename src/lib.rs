@@ -505,6 +505,13 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
         }
         *gstate = 0;
     }
+    fn end(res: &mut Vec<char>, pos: &mut usize, hoen_state: &mut u8){
+        for _ in *pos..res.len() {
+            print!("\x1B[1C");
+        }
+        *pos = res.len();
+        *hoen_state = 0;
+    }
 
     let mut res = Vec::new();
     let mut gstate: u8 = 0;
@@ -591,13 +598,17 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                 if hoen_state == 2 { hoen_state = 3; }
                 else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
             }
+            70 =>{ //end(27-91-70)
+                if hoen_state == 2 {
+                    end(&mut res, &mut pos, &mut hoen_state);
+                }
+                else{
+                    typed_char(70, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                }
+            }
             126 => { //end(27-91-52-126) or delete(27-91-51-126)
                 if hoen_state == 3 { //end
-                    for _ in pos..res.len() {
-                        print!("\x1B[1C");
-                    }
-                    pos = res.len();
-                    hoen_state = 0;
+                    end(&mut res, &mut pos, &mut hoen_state);
                 }
                 else if gstate >= 2{ //delete
                     delete(&mut res, &mut pos, &mut gstate);
