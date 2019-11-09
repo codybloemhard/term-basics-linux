@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    input_field_scrollable();
+    test_input_field_scrollable_docu();
 }
 
 fn test_getch(){
@@ -18,7 +18,7 @@ fn test_input_field(){
     tbl::println(tbl::input_field());
 }
 
-fn input_field_scrollable(){
+fn test_input_field_scrollable(){
     let mut his = tbl::InputHistory::new(100);
     his.add(&"l".to_string());
     his.add(&"third".to_string());
@@ -106,4 +106,13 @@ fn test_getch_docu(){
         if x == 32 { break; }
         print!("{}", x as char);
     }
+}
+
+fn test_input_field_scrollable_docu(){
+    use term_basics_linux as tbl;
+    let mut history = tbl::InputHistory::new(100);
+    let input0 = tbl::input_field_scrollable(&mut history);
+    println!("You typed: {}", input0);
+    let input1 = tbl::input_field_scrollable(&mut history);
+    println!("You typed: {}", input1);
 }

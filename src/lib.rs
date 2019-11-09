@@ -79,6 +79,7 @@ use std::collections::VecDeque;
 
 static FG_COL: AtomicU8 = AtomicU8::new(9);
 static BG_COL: AtomicU8 = AtomicU8::new(9);
+
 /// Resets foreground colour, background colour and text style.
 /// 
 /// # Example
@@ -411,6 +412,7 @@ pub fn test_chars(){
     }
 }
 
+/// A struct that holds information about a history of typed input's but the user.
 pub struct InputHistory{
     history: VecDeque<String>,
     maxlen: usize,
@@ -455,6 +457,22 @@ impl InputHistory{
 pub fn input_field() -> String{
     input_field_scrollable(&mut InputHistory::new(0))
 }
+
+/// Lets the user type text. It returns the string after the user presses 'enter'.
+/// It supports all functions input_field() supports.
+/// It also supports scrolling through the history of earlier typed strings with
+/// the 'up' and 'down' arrow keys.
+///
+/// # Example
+///
+/// ```
+/// use term_basics_linux as tbl;
+/// let mut history = tbl::InputHistory::new(100);
+/// let input0 = tbl::input_field_scrollable(&mut history);
+/// println!("You typed: {}", input0);
+/// let input1 = tbl::input_field_scrollable(&mut history);
+/// println!("You typed: {}", input1);
+/// ```
 
 pub fn input_field_scrollable(history: &mut InputHistory) -> String{
     fn charvec_to_string(vec: &[char]) -> String{
