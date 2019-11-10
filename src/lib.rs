@@ -106,17 +106,18 @@ pub enum UserColour {
     Cyan    = 6,
     Grey    = 7,
 }
-/// Iterate over all colours in the enum
-/// 
-/// # Example
-/// 
-/// ```
-/// use term_basics_linux as tbl;
-/// for col in tbl::UserColour::iterator(){
-///     //use col
-/// }
-/// ```
+
 impl UserColour {
+    /// Iterate over all colours in the enum
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux as tbl;
+    /// for col in tbl::UserColour::iterator(){
+    ///     //use col
+    /// }
+    /// ```
     pub fn iterator() -> Iter<'static, Self> {
         static ARR: [UserColour; 9] = [
             UserColour::Std, 
@@ -784,7 +785,7 @@ pub fn flush() -> io::Result<()>{
 /// Prints a message to the user.
 /// The user can  type its input next to the message on the same line.
 /// It will return the user input after the user pressed enter.
-/// It uses term_basics_linux::tbl::input_field and supports the same operation.
+/// It uses term_basics_linux::input_field and supports the same operations.
 /// 
 /// # Example
 /// 
@@ -796,6 +797,27 @@ pub fn flush() -> io::Result<()>{
 /// ```
 pub fn prompt(msg : &str) -> String{
     print(msg);
-    flush().expect("Error: stdout flush failed.");
+    flush().expect("term_basics_linux: Error: stdout flush failed.");
     input_field()
+}
+
+/// Prints a message to the user.
+/// the user can type its input next to the message on the same line.
+/// It will return the user input after the user pressed enter.
+/// It uses term_basics_linux::input_field_scrollable and supports the same operations.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// let mut his = tbl::InputHistory::new(10);
+/// his.add(&"previously typed in name".to_string());
+/// let name = tbl::prompt_scrollable("type your name: ", &mut his);
+/// tbl::print("Your name: ");
+/// tbl::println(name);
+/// ```
+pub fn prompt_scrollable(msg: &str, his: &mut InputHistory) -> String{
+    print(msg);
+    flush().expect("term_basics_linux: Error: stdout flush failed.");
+    input_field_scrollable(his)
 }

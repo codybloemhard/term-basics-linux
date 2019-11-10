@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_input_history_get_index();
+    test_prompt_scrollable();
 }
 
 fn test_getch(){
@@ -126,6 +126,15 @@ fn test_input_history_get_index(){
     println!("at  2: {:?}", his.get_index(2));
     println!("at  3: {:?}", his.get_index(3));
     println!("at  4: {:?}", his.get_index(4));
+}
+
+fn test_prompt_scrollable(){
+    use term_basics_linux as tbl;
+    let mut his = tbl::InputHistory::new(10);
+    his.add(&"previously typed in name".to_string());
+    let name = tbl::prompt_scrollable("type your name: ", &mut his);
+    tbl::print("Your name: ");
+    tbl::println(name);
 }
 
 //documentation integration tests, that are not included above
