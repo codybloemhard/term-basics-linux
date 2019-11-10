@@ -419,6 +419,15 @@ pub struct InputHistory{
 }
 
 impl InputHistory{
+    /// Make a new InputHistory with a certain maximum capacity.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basic_linux as tbl;
+    /// let mut his = tbl::InputHistory::new(10);
+    /// let x = tbl::input_field_scrollable(&mut his);
+    /// ```
     pub fn new(maxlen: usize) -> Self{
         Self{
             history: VecDeque::new(),
@@ -426,18 +435,55 @@ impl InputHistory{
         }
     }
 
-    pub fn trim(&mut self){
-        self.history.truncate(self.maxlen);
+    fn trim(&mut self){
+        while self.history.len() > self.maxlen{
+            self.history.pop_front();
+        }
     }
-
+    /// Adds an element to the history.
+    /// It will delete items if it's length would grow past the max length.
+    /// the oldest items will be removed.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux as tbl;
+    /// let mut his = tbl::InputHistory::new(2);
+    /// his.add(&"0".to_string());
+    /// his.add(&"1".to_string());
+    /// his.add(&"2".to_string());
+    /// //only "1" and "2" will remain, as 0 is removed.
+    /// let _ = tbl::input_field_scrollable(&mut his);
+    /// ```
     pub fn add(&mut self, string: &String){
         self.history.push_back(string.clone());
         self.trim();
     }
-
+    /// Returns the an Option of String, the element at the given index.
+    /// The index wraps and you can query for negative indices as well as indices above the maximum length.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use term_basics_linux as tbl;
+    /// let mut his = tbl::InputHistory::new(3);
+    /// his.add(&"0".to_string());
+    /// his.add(&"1".to_string());
+    /// his.add(&"2".to_string());
+    /// println!("at -2: {:?}", his.get_index(-2)); // "1"
+    /// println!("at -1: {:?}", his.get_index(-1)); // "2"
+    /// println!("at  0: {:?}", his.get_index(0));  // "0"
+    /// println!("at  1: {:?}", his.get_index(1));  // "1"
+    /// println!("at  2: {:?}", his.get_index(2));  // "2"
+    /// println!("at  3: {:?}", his.get_index(3));  // "0"
+    /// println!("at  4: {:?}", his.get_index(4));  // "1"
+    /// ```
     pub fn get_index(&self, mut index: i32) -> Option<&String>{
         if self.history.len() != 0 {
             index %= self.history.len() as i32;
+        }
+        if index < 0{
+            index += self.maxlen as i32;
         }
         self.history.get(index as usize)
     }
@@ -459,7 +505,7 @@ pub fn input_field() -> String{
 }
 
 /// Lets the user type text. It returns the string after the user presses 'enter'.
-/// It supports all functions input_field() supports.
+/// It supports all functions ```input_field()``` supports.
 /// It also supports scrolling through the history of earlier typed strings with
 /// the 'up' and 'down' arrow keys.
 ///

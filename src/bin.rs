@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_input_field_scrollable_docu();
+    test_input_history_get_index();
 }
 
 fn test_getch(){
@@ -95,6 +95,37 @@ fn test_number_parse(){
     let age: Option<u8> = tbl::string_to_value(&user_input);
     if let Some(agev) = age { println!("Your age: {}", agev); }
     else { println!("Invalid age!"); }
+}
+
+fn test_input_history_new(){
+    use term_basics_linux as tbl;
+    let mut his = tbl::InputHistory::new(10);
+    let _ = tbl::input_field_scrollable(&mut his);
+}
+
+fn test_input_history_add(){
+    use term_basics_linux as tbl;
+    let mut his = tbl::InputHistory::new(2);
+    his.add(&"0".to_string());
+    his.add(&"1".to_string());
+    his.add(&"2".to_string());
+    //only "1" and "2" will remain, as 0 is removed.
+    let _ = tbl::input_field_scrollable(&mut his);
+}
+
+fn test_input_history_get_index(){
+    use term_basics_linux as tbl;
+    let mut his = tbl::InputHistory::new(3);
+    his.add(&"0".to_string());
+    his.add(&"1".to_string());
+    his.add(&"2".to_string());
+    println!("at -2: {:?}", his.get_index(-2));
+    println!("at -1: {:?}", his.get_index(-1));
+    println!("at  0: {:?}", his.get_index(0));
+    println!("at  1: {:?}", his.get_index(1));
+    println!("at  2: {:?}", his.get_index(2));
+    println!("at  3: {:?}", his.get_index(3));
+    println!("at  4: {:?}", his.get_index(4));
 }
 
 //documentation integration tests, that are not included above
