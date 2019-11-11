@@ -502,7 +502,7 @@ impl InputHistory{
 /// let user_input = tbl::input_field();
 /// ```
 pub fn input_field() -> String{
-    input_field_scrollable(&mut InputHistory::new(0))
+    input_field_raw(&mut InputHistory::new(0), Option::None)
 }
 
 /// Lets the user type text. It returns the string after the user presses 'enter'.
@@ -520,8 +520,25 @@ pub fn input_field() -> String{
 /// let input1 = tbl::input_field_scrollable(&mut history);
 /// println!("You typed: {}", input1);
 /// ```
-
 pub fn input_field_scrollable(history: &mut InputHistory) -> String{
+    input_field_raw(history, Option::None)
+}
+
+/// Lets the user type text. It returns the string after the user presses 'enter'.
+/// It supports all functions ```input_field()``` supports.
+/// It hides the typed in text byt subsituting it for a character of your choice.
+/// 
+/// # Example
+/// 
+/// ```use term_basics_linux as tbl;
+/// let password = tbl::input_field_hidden('*'); //Hide the users password as it is typed in!
+/// tbl::println_style(password, tbl::TextStyle::Bold); // THAN PRINT IT OUT
+/// ```
+pub fn input_field_hidden(ch: char) -> String{
+    input_field_raw(&mut InputHistory::new(0), Option::Some(ch))
+}
+
+fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
     fn charvec_to_string(vec: &[char]) -> String{
         let mut string = String::new();
         for &ch in vec {
@@ -529,18 +546,18 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
         }
         string
     }
-    fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, hstate: &mut u8, pos: &mut usize){
+    fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, hstate: &mut u8, pos: &mut usize, sub: Option<char>){
         let ch = ch as char;
         buff.insert(*pos, ch);
         if *pos != buff.len() - 1{
             for item in buff.iter().skip(*pos){
-                print!("{}", item);
+                put_char(*item, sub);
             }
             for _ in  *pos..buff.len()-1{
                 print!("{}", 8 as char);
             }
         }else{
-            print!("{}", ch);
+            put_char(ch, sub);
         }
         *hstate = 0;
         *gstate = 0;
@@ -559,17 +576,17 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
             buff.push(ch);
         }
     }
-    fn write_all(buff: &Vec<char>){
+    fn write_all(buff: &Vec<char>, sub: Option<char>){
         for item in buff.iter(){
-            print!("{}", item);
+            put_char(*item, sub);
         }
     }
-    fn scroll_action(res: &mut Vec<char>, pos: &mut usize, history: &InputHistory, his_index: i32){
+    fn scroll_action(res: &mut Vec<char>, pos: &mut usize, history: &InputHistory, his_index: i32, sub: Option<char>){
         let val = history.get_index(his_index);
         if let Some(valv) = val{
             let old_len = delete_all(res);
             feed_into_buffer(res, valv);
-            write_all(&res);
+            write_all(&res, sub);
             *pos = res.len();
             let diff = old_len as i32 - res.len() as i32;
             if diff <= 0 { return; }
@@ -581,12 +598,12 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
             }
         }
     }
-    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8){
+    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8, sub: Option<char>){
         if res.is_empty() { return; }
         if *pos >= res.len() - 1 { return; }
         res.remove(*pos);
         for item in res.iter().skip(*pos){
-            print!("{}", item);
+            put_char(*item, sub);
         }
         print!(" ");
         for _ in *pos..res.len()+1{
@@ -600,6 +617,13 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
         }
         *pos = res.len();
         *hoen_state = 0;
+    }
+    fn put_char(ch: char, sub: Option<char>){
+        if let Some(subv) = sub{
+            print!("{}", subv);
+        } else{
+            print!("{}", ch);
+        }
     }
 
     let mut res = Vec::new();
@@ -621,7 +645,7 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                 print!("{}", 8 as char);
                 //print!("\x1B[1D"); //also works
                 for item in res.iter().skip(pos-1){
-                    print!("{}", item);
+                    put_char(*item, sub);
                 }
                 print!(" ");
                 for _ in pos-1..res.len()+1{
@@ -638,27 +662,27 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                 if gstate == 1 { gstate = 2; }
                 if hoen_state == 1 { hoen_state = 2; }
                 if gstate == 2 || hoen_state == 2 { continue; }
-                typed_char(91, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                typed_char(91, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
             }
             65 => { //up arrow
                 if gstate == 2 {
                     gstate = 0; 
                     his_index += 1;
-                    scroll_action(&mut res, &mut pos, &history, his_index);
+                    scroll_action(&mut res, &mut pos, &history, his_index, sub);
                 }
-                else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
+                else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
             }
             66 => { //down arrow
                 if gstate == 2 {
                     gstate = 0; 
                     his_index -= 1;
-                    scroll_action(&mut res, &mut pos, &history, his_index);
+                    scroll_action(&mut res, &mut pos, &history, his_index, sub);
                 }
-                else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
+                else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
             }
             72 => { //home key
                 if hoen_state != 2 { 
-                    typed_char(72, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                    typed_char(72, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
                     continue;
                 }
                 for _ in 0..pos {
@@ -669,7 +693,7 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
             }
             51 => {
                 if gstate != 2 {
-                    typed_char(51, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                    typed_char(51, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
                 }
                 else {
                     gstate = 3;
@@ -677,14 +701,14 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
             }
             52 => { //end key 3e char
                 if hoen_state == 2 { hoen_state = 3; }
-                else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
+                else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
             }
             70 =>{ //end(27-91-70)
                 if hoen_state == 2 {
                     end(&mut res, &mut pos, &mut hoen_state);
                 }
                 else{
-                    typed_char(70, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                    typed_char(70, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
                 }
             }
             126 => { //end(27-91-52-126) or delete(27-91-51-126)
@@ -692,19 +716,19 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                     end(&mut res, &mut pos, &mut hoen_state);
                 }
                 else if gstate >= 2{ //delete
-                    delete(&mut res, &mut pos, &mut gstate);
+                    delete(&mut res, &mut pos, &mut gstate, sub);
                 }
                 else {
-                    typed_char(126, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                    typed_char(126, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
                 }
                 
             }
             80 => { //delete key with code 27-91-80
                 if gstate != 2 { 
-                    typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos);
+                    typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
                     continue;
                 }
-                delete(&mut res, &mut pos, &mut gstate);
+                delete(&mut res, &mut pos, &mut gstate, sub);
             }
             67 => {  //right arrow
                 if gstate == 2 {
@@ -712,7 +736,7 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                     gstate = 0;
                     pos = min(pos + 1, res.len());
                 }
-                else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
+                else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
             }
             68 => {  //left arrow
                 if gstate == 2 {
@@ -720,9 +744,9 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
                     gstate = 0;
                     pos = max(pos as i32 - 1, 0 as i32) as usize;
                 }
-                else { typed_char(68, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
+                else { typed_char(68, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
             }
-            x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos); }
+            x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
         }
     }
     let string = charvec_to_string(&res);
@@ -802,7 +826,7 @@ pub fn prompt(msg : &str) -> String{
 }
 
 /// Prints a message to the user.
-/// the user can type its input next to the message on the same line.
+/// The user can type its input next to the message on the same line.
 /// It will return the user input after the user pressed enter.
 /// It uses term_basics_linux::input_field_scrollable and supports the same operations.
 /// 
@@ -820,4 +844,22 @@ pub fn prompt_scrollable(msg: &str, his: &mut InputHistory) -> String{
     print(msg);
     flush().expect("term_basics_linux: Error: stdout flush failed.");
     input_field_scrollable(his)
+}
+
+/// Prints a message to the user.
+/// The user can type its input next to the message on the same line.
+/// It will return the user input after the user pressed enter.
+/// It uses term_basics_linux::input_field_scrollable and supports the same operations.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// let password = tbl::prompt_hidden("Enter password: ", '*'); // Hide the users password as it is typed in!
+/// tbl::println_style(password, tbl::TextStyle::Blink); // show it to the world with some extra spice.
+/// ```
+pub fn prompt_hidden(msg: &str, ch: char) -> String{
+    print(msg);
+    flush().expect("term_basics_linux: Error: stdout flush failed.");
+    input_field_hidden(ch)
 }

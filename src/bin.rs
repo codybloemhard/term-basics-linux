@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_prompt_scrollable();
+    test_prompt_hidden();
 }
 
 fn test_getch(){
@@ -135,6 +135,18 @@ fn test_prompt_scrollable(){
     let name = tbl::prompt_scrollable("type your name: ", &mut his);
     tbl::print("Your name: ");
     tbl::println(name);
+}
+
+fn test_input_field_hidden(){
+    use term_basics_linux as tbl;
+    let password = tbl::input_field_hidden('*'); //Hide the users password as it is typed in!
+    tbl::println_style(password, tbl::TextStyle::Bold); // THAN PRINT IT OUT
+}
+
+fn test_prompt_hidden(){
+    use term_basics_linux as tbl;
+    let password = tbl::prompt_hidden("Enter password: ", '*'); // Hide the users password as it is typed in!
+    tbl::println_style(password, tbl::TextStyle::Blink); // show it to the world with some extra spice.
 }
 
 //documentation integration tests, that are not included above
