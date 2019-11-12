@@ -80,6 +80,7 @@ use std::collections::VecDeque;
 static FG_COL: AtomicU8 = AtomicU8::new(9);
 static BG_COL: AtomicU8 = AtomicU8::new(9);
 static STYLE: AtomicU8 = AtomicU8::new(0);
+static USE_NEWLINE_PROMPT: AtomicU8 = AtomicU8::new(0);
 
 /// Resets foreground colour, background colour and text style.
 /// 
@@ -726,6 +727,39 @@ pub fn input_field_hidden(ch: char) -> String{
     input_field_raw(&mut InputHistory::new(0), Option::Some(ch))
 }
 
+/// Call this before ```input_field``` or it's variations if you want to NOT print a newline(```\n```) after the user presses enter.
+/// This will work for the next time you call any version of ```input_field```.
+/// To cancel it you can call ```use_newline_on_prompt```.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::discard_newline_on_prompt_nexttime();
+/// let _ = tbl::prompt("enter your name: ");
+/// tbl::println(" // your name");
+/// ```
+pub fn discard_newline_on_prompt_nexttime(){
+    USE_NEWLINE_PROMPT.store(1, Ordering::Relaxed);
+}
+
+/// Call this to let any variation of ```input_field``` print a newline after the user presses enter.
+/// This is not needed, they will print a newline by default.
+/// This is used to cancel ```discard_newline_on_prompt_nexttime```.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::discard_newline_on_prompt_nexttime();//use somewhere
+/// tbl::use_newline_on_prompt();//cancel somewhere else in code
+/// let _ = tbl::prompt("enter your name: ");
+/// tbl::println(" // your name");
+/// ```
+pub fn use_newline_on_prompt(){
+    USE_NEWLINE_PROMPT.store(0, Ordering::Relaxed);
+}
+
 fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
     fn charvec_to_string(vec: &[char]) -> String{
         let mut string = String::new();
@@ -825,7 +859,14 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
         let mut x = getch();
         if x == 8 { x = 127; } //shift + backspace
         match x{
-            10 => { println!(); break; } //enter
+            10 => {  //enter
+                if USE_NEWLINE_PROMPT.load(Ordering::Relaxed) == 0 {
+                    println!();
+                }else{
+                    USE_NEWLINE_PROMPT.store(0, Ordering::Relaxed);
+                }
+                break;
+            }
             127 => {  //backspace
                 if res.is_empty() { continue; }
                 if pos <= 0 { continue; }

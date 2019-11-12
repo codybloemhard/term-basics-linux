@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_reset_style();
+    test_use_newline_on_prompt();
 }
 
 fn test_getch(){
@@ -232,6 +232,21 @@ fn test_reset_style(){
     tbl::println("im am cyan on red and blinking");
     tbl::reset_style();
     tbl::println("i am still cyan on red but im am not blinking");
+}
+
+fn test_discard_newline_on_prompt_nexttime(){
+    use term_basics_linux as tbl;
+    tbl::discard_newline_on_prompt_nexttime();
+    let _ = tbl::prompt("enter your name: ");
+    tbl::println(" // your name");
+}
+
+fn test_use_newline_on_prompt(){
+    use term_basics_linux as tbl;
+    tbl::discard_newline_on_prompt_nexttime();//use somewhere
+    tbl::use_newline_on_prompt();//cancel somewhere else in code
+    let _ = tbl::prompt("enter your name: ");
+    tbl::println(" // your name");
 }
 
 //documentation integration tests, that are not included above
