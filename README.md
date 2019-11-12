@@ -41,6 +41,13 @@ But delete is 27-91-80 on ST and 27-91-51-126 on vscode. End is 27-91-52-126 on 
 If you encounter a non-supported key code, please open an issue on github with the function key(delete,end,etc) and what platform(terminal emulator) you run.
 The ```test_chars``` function can help look up what key code it is on your platform. It is helpfull to to supply that information.
 Ofcourse you can also make a pull request.
+### testing
+term-basics-linux is tested on the following terminals (emulators):
+| platform                                  | Tested |
+| ----------------------------------------- | ------ |
+| ST (suckless simple terminal, zsh)        | Always |
+| vscode (build in terminal emulator, zsh)  | Always |
+| tty (arch linux, zsh)                     | Todo   |
 ## links
 This readme is used on multiple sites so some links might be redundant.
 * [https://github.com/ocdy1001/term-basics-linux](https://github.com/ocdy1001/term-basics-linux)
