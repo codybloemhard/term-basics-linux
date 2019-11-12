@@ -43,11 +43,13 @@ The ```test_chars``` function can help look up what key code it is on your platf
 Ofcourse you can also make a pull request.
 ### testing
 term-basics-linux is tested on the following terminals (emulators):
-| platform                                  | Tested |
-| ----------------------------------------- | ------ |
+
+| Platform                                  | Tested |
+|:----------------------------------------- |:------ |
 | ST (suckless simple terminal, zsh)        | Always |
 | vscode (build in terminal emulator, zsh)  | Always |
 | tty (arch linux, zsh)                     | Todo   |
+
 ## links
 This readme is used on multiple sites so some links might be redundant.
 * [https://github.com/ocdy1001/term-basics-linux](https://github.com/ocdy1001/term-basics-linux)
