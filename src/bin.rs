@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_persistant();
+    test_reset_style();
 }
 
 fn test_getch(){
@@ -160,6 +160,78 @@ fn test_persistant(){
     tbl::restore_colour(tbl::FGBG::FG);
     tbl::println("red");
     println!("still red");
+}
+
+fn test_use_colour(){
+    use term_basics_linux as tbl;
+    tbl::use_colour(tbl::UserColour::Blue, tbl::FGBG::FG);
+    tbl::println("henlo frens");
+}
+
+fn test_restore_colour(){
+    use term_basics_linux as tbl;
+    tbl::set_colour(tbl::UserColour::Red, tbl::FGBG::FG);
+    tbl::println("this is red");
+    tbl::use_colour(tbl::UserColour::Green, tbl::FGBG::FG);
+    tbl::println("this is green");
+    tbl::restore_colour(tbl::FGBG::FG);
+    tbl::println("this is red again");
+}
+
+fn test_use_colours(){
+    use term_basics_linux as tbl;
+    for fg in tbl::UserColour::iterator(){
+        for bg in tbl::UserColour::iterator(){
+            tbl::use_colours(fg.clone(), bg.clone());
+            println!("haha yes");
+        }
+    }
+}
+
+fn test_restore_colours(){
+    use term_basics_linux as tbl;
+    tbl::set_colours(tbl::UserColour::Green, tbl::UserColour::Magenta);
+    tbl::println("cool and good");
+    tbl::use_colours(tbl::UserColour::Red, tbl::UserColour::Black);
+    tbl::println("warm and bad");
+    tbl::restore_colours();
+    tbl::println("cool and good again");
+}
+
+fn test_use_style(){
+    use term_basics_linux as tbl;
+    for i in tbl::TextStyle::iterator(){
+        tbl::use_style(i.clone());
+        println!("haha yes");
+    }
+}
+
+fn test_restore_style(){
+    use term_basics_linux as tbl;
+    tbl::set_style(tbl::TextStyle::Bold);
+    tbl::println("this is bold");
+    tbl::use_style(tbl::TextStyle::Crossed);
+    tbl::println("this is crossed");
+    tbl::restore_style();
+    tbl::println("this is bold again");
+}
+
+fn test_reset_colours(){
+    use term_basics_linux as tbl;
+    tbl::set_colours(tbl::UserColour::Magenta, tbl::UserColour::Yellow);
+    tbl::set_style(tbl::TextStyle::Underlined);
+    tbl::println("i am magenta on yellow as well as underlined");
+    tbl::reset_colours();
+    tbl::println("i am underlined but have standard colours")
+}
+
+fn test_reset_style(){
+    use term_basics_linux as tbl;
+    tbl::set_colours(tbl::UserColour::Cyan, tbl::UserColour::Red);
+    tbl::set_style(tbl::TextStyle::Blink);
+    tbl::println("im am cyan on red and blinking");
+    tbl::reset_style();
+    tbl::println("i am still cyan on red but im am not blinking");
 }
 
 //documentation integration tests, that are not included above

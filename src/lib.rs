@@ -174,6 +174,7 @@ impl TextStyle {
 pub enum FGBG { FG, BG }
 /// Sets the colour of the text printed after this call.
 /// It will print linux colour escape characters to std out.
+/// It will set the state, so you can use ```restore_colour``` to get it back.
 /// 
 /// # Examples
 /// 
@@ -194,7 +195,17 @@ pub enum FGBG { FG, BG }
 pub fn set_colour(col: UserColour, fgbg: FGBG){
     _set_colour(col, fgbg, true);
 }
-
+/// Sets the colour of the text printed after this call.
+/// It will print linux colour escape characters to std out.
+/// It will not set the state, so you can not use ```restore_colour``` to get this state back.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::use_colour(tbl::UserColour::Blue, tbl::FGBG::FG);
+/// tbl::println("henlo frens");
+/// ```
 pub fn use_colour(col: UserColour, fgbg: FGBG){
     _set_colour(col, fgbg, false);
 }
@@ -219,7 +230,20 @@ fn _set_colour(col: UserColour, fgbg: FGBG, update_state: bool){
     colorcode.push_str("m");
     print!("{}", colorcode);
 }
-
+/// Restores the colour from the state.
+/// ```set_colour``` will set the state and use colour will not.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::set_colour(tbl::UserColour::Red, tbl::FGBG::FG);
+/// tbl::println("this is red");
+/// tbl::use_colour(tbl::UserColour::Green, tbl::FGBG::FG);
+/// tbl::println("this is green");
+/// tbl::restore_colour(tbl::FGBG::FG);
+/// tbl::println("this is red again");
+/// ```
 pub fn restore_colour(fgbg: FGBG){
     let mut colorcode = String::from("\x1B[");
     if fgbg == FGBG::FG{
@@ -233,8 +257,9 @@ pub fn restore_colour(fgbg: FGBG){
     print!("{}", colorcode);
 }
 
-/// Sets both foreground and background colours
+/// Sets both foreground and background colours.
 /// It will print linux colour escape characters to std out.
+/// It will set the state.
 /// 
 /// # Example
 /// 
@@ -251,18 +276,46 @@ pub fn set_colours(fg: UserColour, bg: UserColour){
     set_colour(fg, FGBG::FG);
     set_colour(bg, FGBG::BG);
 }
-
+/// Sets both foreground and background colours.
+/// It will print linux colour escape characters to std out.
+/// It will not set the state.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// for fg in tbl::UserColour::iterator(){
+///     for bg in tbl::UserColour::iterator(){
+///         tbl::use_colours(fg.clone(), bg.clone());
+///         println!("haha yes");
+///     }
+/// }
+/// ```
 pub fn use_colours(fg: UserColour, bg: UserColour){
     use_colour(fg, FGBG::FG);
     use_colour(bg, FGBG::BG);
 }
-
+/// Restores all colours from state.
+/// It is used after a call like ```use_colour``` to get back to the old colours.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::set_colours(tbl::UserColour::Green, tbl::UserColour::Magenta);
+/// tbl::println("cool and good");
+/// tbl::use_colours(tbl::UserColour::Red, tbl::UserColour::Black);
+/// tbl::println("warm and bad");
+/// tbl::restore_colours();
+/// tbl::println("cool and good again");
+/// ```
 pub fn restore_colours(){
     restore_colour(FGBG::FG);
     restore_colour(FGBG::BG);
 }
 /// Sets the style of the text printed after this call.
 /// It will print linux colour escape characters to std out.
+/// It will also set the state.
 /// 
 /// # Example
 /// 
@@ -276,7 +329,19 @@ pub fn restore_colours(){
 pub fn set_style(sty: TextStyle){
     _set_style(sty, true);
 }
-
+/// Sets the style of the text printed after this call.
+/// It will print linux colour escape characters to std out.
+/// It will not set the state so you can not restore it.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// for i in tbl::TextStyle::iterator(){
+///     tbl::use_style(i.clone());
+///     println!("haha yes");
+/// }
+/// ```
 pub fn use_style(sty: TextStyle){
     _set_style(sty, false);
 }
@@ -297,6 +362,21 @@ fn _set_style(sty: TextStyle, update_state: bool){
     print!("\x1B[4{}m", BG_COL.load(Ordering::Relaxed));
 }
 
+/// Restores the style from the state.
+/// The state is set after calls like ```set_style```
+/// Usually you restore it after a call like ```use_style```.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::set_style(tbl::TextStyle::Bold);
+/// tbl::println("this is bold");
+/// tbl::use_style(tbl::TextStyle::Crossed);
+/// tbl::println("this is crossed");
+/// tbl::restore_style();
+/// tbl::println("this is bold again");
+/// ```
 pub fn restore_style(){
     print!("\x1B[00m");
     let mut stylecode = String::from("\x1B[0");
@@ -307,12 +387,39 @@ pub fn restore_style(){
     print!("\x1B[4{}m", BG_COL.load(Ordering::Relaxed));
 }
 
+/// Resets all the colours.
+/// It set the foreground and background colours to the standard colours, whatever they may be.
+/// This depends on your terminal emulator and or settings like bashrc or zshrc.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::set_colours(tbl::UserColour::Magenta, tbl::UserColour::Yellow);
+/// tbl::set_style(tbl::TextStyle::Underlined);
+/// tbl::println("i am magenta on yellow as well as underlined");
+/// tbl::reset_colours();
+/// tbl::println("i am underlined but have standard colours")
+/// ```
 pub fn reset_colours(){
     FG_COL.store(9, Ordering::Relaxed);
     BG_COL.store(9, Ordering::Relaxed);
     restore_style();
 }
 
+/// Resets the style.
+/// It sets the style to the default style.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::set_colours(tbl::UserColour::Cyan, tbl::UserColour::Red);
+/// tbl::set_style(tbl::TextStyle::Blink);
+/// tbl::println("im am cyan on red and blinking");
+/// tbl::reset_style();
+/// tbl::println("i am still cyan on red but im am not blinking");
+/// ```
 pub fn reset_style(){
     STYLE.store(0, Ordering::Relaxed);
     print!("\x1B[00m");
