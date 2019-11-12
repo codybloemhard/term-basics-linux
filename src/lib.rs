@@ -79,6 +79,7 @@ use std::collections::VecDeque;
 
 static FG_COL: AtomicU8 = AtomicU8::new(9);
 static BG_COL: AtomicU8 = AtomicU8::new(9);
+static STYLE: AtomicU8 = AtomicU8::new(0);
 
 /// Resets foreground colour, background colour and text style.
 /// 
@@ -191,21 +192,47 @@ pub enum FGBG { FG, BG }
 /// }
 /// ```
 pub fn set_colour(col: UserColour, fgbg: FGBG){
+    _set_colour(col, fgbg, true);
+}
+
+pub fn use_colour(col: UserColour, fgbg: FGBG){
+    _set_colour(col, fgbg, false);
+}
+
+fn _set_colour(col: UserColour, fgbg: FGBG, update_state: bool){
     let _id = ToPrimitive::to_u8(&col);
     let mut id = 0;
     if let Some(_idv) = _id { id = _idv; }
     let mut colorcode = String::from("\x1B[");
     if fgbg == FGBG::FG {
         colorcode.push('3');
-        FG_COL.store(id, Ordering::Relaxed);
+        if update_state{
+            FG_COL.store(id, Ordering::Relaxed);
+        }
     }else{
         colorcode.push('4');
-        BG_COL.store(id, Ordering::Relaxed);
+        if update_state{
+            BG_COL.store(id, Ordering::Relaxed);
+        }
     }
     colorcode.push_str(&format!("{}", id));
     colorcode.push_str("m");
     print!("{}", colorcode);
 }
+
+pub fn restore_colour(fgbg: FGBG){
+    let mut colorcode = String::from("\x1B[");
+    if fgbg == FGBG::FG{
+        colorcode.push('3');
+        colorcode.push_str(&format!("{}", FG_COL.load(Ordering::Relaxed)));
+    }else{
+        colorcode.push('4');
+        colorcode.push_str(&format!("{}", BG_COL.load(Ordering::Relaxed)));
+    }
+    colorcode.push_str("m");
+    print!("{}", colorcode);
+}
+
 /// Sets both foreground and background colours
 /// It will print linux colour escape characters to std out.
 /// 
@@ -224,6 +251,16 @@ pub fn set_colours(fg: UserColour, bg: UserColour){
     set_colour(fg, FGBG::FG);
     set_colour(bg, FGBG::BG);
 }
+
+pub fn use_colours(fg: UserColour, bg: UserColour){
+    use_colour(fg, FGBG::FG);
+    use_colour(bg, FGBG::BG);
+}
+
+pub fn restore_colours(){
+    restore_colour(FGBG::FG);
+    restore_colour(FGBG::BG);
+}
 /// Sets the style of the text printed after this call.
 /// It will print linux colour escape characters to std out.
 /// 
@@ -237,9 +274,20 @@ pub fn set_colours(fg: UserColour, bg: UserColour){
 /// }
 /// ```
 pub fn set_style(sty: TextStyle){
+    _set_style(sty, true);
+}
+
+pub fn use_style(sty: TextStyle){
+    _set_style(sty, false);
+}
+
+fn _set_style(sty: TextStyle, update_state: bool){
     let _id = ToPrimitive::to_u8(&sty);
     let mut id = 0;
     if let Some(_idv) = _id { id = _idv; }
+    if update_state{
+        STYLE.store(id, Ordering::Relaxed);
+    }
     print!("\x1B[00m");
     let mut colorcode = String::from("\x1B[0");
     colorcode.push_str(&format!("{}", id));
@@ -248,6 +296,29 @@ pub fn set_style(sty: TextStyle){
     print!("\x1B[3{}m", FG_COL.load(Ordering::Relaxed));
     print!("\x1B[4{}m", BG_COL.load(Ordering::Relaxed));
 }
+
+pub fn restore_style(){
+    print!("\x1B[00m");
+    let mut stylecode = String::from("\x1B[0");
+    stylecode.push_str(&format!("{}", STYLE.load(Ordering::Relaxed)));
+    stylecode.push('m');
+    print!("{}", stylecode);
+    print!("\x1B[3{}m", FG_COL.load(Ordering::Relaxed));
+    print!("\x1B[4{}m", BG_COL.load(Ordering::Relaxed));
+}
+
+pub fn reset_colours(){
+    FG_COL.store(9, Ordering::Relaxed);
+    BG_COL.store(9, Ordering::Relaxed);
+    restore_style();
+}
+
+pub fn reset_style(){
+    STYLE.store(0, Ordering::Relaxed);
+    print!("\x1B[00m");
+    restore_colours();
+}
+
 /// Print to stdout, it is just  print!("{}", msg);
 /// Here to stay consistent
 /// 
@@ -281,8 +352,9 @@ pub fn println<T: std::fmt::Display>(msg: T){
 /// tbl::print_col("orang no!", tbl::UserColour::Yellow);
 /// ```
 pub fn print_col<T: std::fmt::Display>(msg: T, col: UserColour){
-    set_colour(col, FGBG::FG);
+    use_colour(col, FGBG::FG);
     print!("{}", msg);
+    restore_colour(FGBG::FG);
 }
 /// Print to stdout with a text colour.
 /// 
@@ -293,8 +365,9 @@ pub fn print_col<T: std::fmt::Display>(msg: T, col: UserColour){
 /// tbl::println_col("orang no!", tbl::UserColour::Yellow);
 /// ```
 pub fn println_col<T: std::fmt::Display>(msg: T, col: UserColour){
-    set_colour(col, FGBG::FG);
+    use_colour(col, FGBG::FG);
     println!("{}", msg);
+    restore_colour(FGBG::FG);
 }
 /// Print to stdout with text and background colours.
 /// 
@@ -305,8 +378,9 @@ pub fn println_col<T: std::fmt::Display>(msg: T, col: UserColour){
 /// tbl::print_cols("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black);
 /// ```
 pub fn print_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
-    set_colours(fg, bg);
+    use_colours(fg, bg);
     print!("{}", msg);
+    restore_colours();
 }
 /// Print to stdout with text and background colours.
 /// 
@@ -317,8 +391,9 @@ pub fn print_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
 /// tbl::println_cols("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black);
 /// ```
 pub fn println_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
-    set_colours(fg, bg);
+    use_colours(fg, bg);
     println!("{}", msg);
+    restore_colours();
 }
 /// Print to stdout with text style.
 /// 
@@ -329,8 +404,9 @@ pub fn println_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour
 /// tbl::print_style("I am bold.", tbl::TextStyle::Bold);
 /// ```
 pub fn print_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
-    set_style(sty);
+    use_style(sty);
     print!("{}", msg);
+    restore_style();
 }
 /// Print to stdout with text style.
 /// 
@@ -341,8 +417,9 @@ pub fn print_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
 /// tbl::println_style("I am bold.", tbl::TextStyle::Bold);
 /// ```
 pub fn println_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
-    set_style(sty);
+    use_style(sty);
     println!("{}", msg);
+    restore_style();
 }
 /// Print to stdout with text and background colours and style.
 /// 
@@ -353,9 +430,11 @@ pub fn println_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
 /// tbl::print_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
 /// ```
 pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour, sty: TextStyle){
-    set_colours(fg, bg);
-    set_style(sty);
+    use_colours(fg, bg);
+    use_style(sty);
     print!("{}", msg);
+    restore_colours();
+    restore_style();
 }
 /// Print to stdout with text and background colours and style.
 /// 
@@ -366,9 +445,11 @@ pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserCo
 /// tbl::println_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
 /// ```
 pub fn println_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour, sty: TextStyle){
-    set_colours(fg, bg);
-    set_style(sty);
+    use_colours(fg, bg);
+    use_style(sty);
     println!("{}", msg);
+    restore_colours();
+    restore_style();
 }
 /// Returns the character as u8 typed by the user. 
 /// It will return immediately after being typed, without the user pressing 'enter'.

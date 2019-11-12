@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_prompt_hidden();
+    test_persistant();
 }
 
 fn test_getch(){
@@ -147,6 +147,19 @@ fn test_prompt_hidden(){
     use term_basics_linux as tbl;
     let password = tbl::prompt_hidden("Enter password: ", '*'); // Hide the users password as it is typed in!
     tbl::println_style(password, tbl::TextStyle::Blink); // show it to the world with some extra spice.
+}
+
+fn test_persistant(){
+    use term_basics_linux as tbl;
+    tbl::println_col("cyan", tbl::UserColour::Cyan);
+    println!("after cyan");
+    tbl::set_colour(tbl::UserColour::Red, tbl::FGBG::FG);
+    tbl::println("red");
+    tbl::use_colour(tbl::UserColour::Yellow, tbl::FGBG::FG);
+    tbl::println("yellow");
+    tbl::restore_colour(tbl::FGBG::FG);
+    tbl::println("red");
+    println!("still red");
 }
 
 //documentation integration tests, that are not included above
