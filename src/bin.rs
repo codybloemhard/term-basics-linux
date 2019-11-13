@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_use_newline_on_prompt();
+    test_prompt_custom();
 }
 
 fn test_getch(){
@@ -137,15 +137,15 @@ fn test_prompt_scrollable(){
     tbl::println(name);
 }
 
-fn test_input_field_hidden(){
+fn test_input_field_custom(){
     use term_basics_linux as tbl;
-    let password = tbl::input_field_hidden('*'); //Hide the users password as it is typed in!
+    let password = tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('*')); //Hide the users password as it is typed in!
     tbl::println_style(password, tbl::TextStyle::Bold); // THAN PRINT IT OUT
 }
 
-fn test_prompt_hidden(){
+fn test_prompt_masked(){
     use term_basics_linux as tbl;
-    let password = tbl::prompt_hidden("Enter password: ", '*'); // Hide the users password as it is typed in!
+    let password = tbl::prompt_masked("Enter password: ", '*'); // Hide the users password as it is typed in!
     tbl::println_style(password, tbl::TextStyle::Blink); // show it to the world with some extra spice.
 }
 
@@ -247,6 +247,22 @@ fn test_use_newline_on_prompt(){
     tbl::use_newline_on_prompt();//cancel somewhere else in code
     let _ = tbl::prompt("enter your name: ");
     tbl::println(" // your name");
+}
+
+fn test_prompt_char(){
+    use term_basics_linux as tbl;
+    tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy));
+    tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('#')));
+    tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::None));
+}
+
+fn test_prompt_custom(){
+    use term_basics_linux as tbl;
+    let mut his = tbl::InputHistory::new(2);
+    his.add(&"hidden option 0".to_string());
+    his.add(&"hidden option 1".to_string());//provide options but the user can't see them.
+    let x = tbl::prompt_custom("enter input:", &mut his, tbl::PromptChar::None);
+    tbl::println(x);
 }
 
 //documentation integration tests, that are not included above

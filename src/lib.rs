@@ -691,7 +691,7 @@ impl InputHistory{
 /// let user_input = tbl::input_field();
 /// ```
 pub fn input_field() -> String{
-    input_field_raw(&mut InputHistory::new(0), Option::None)
+    input_field_raw(&mut InputHistory::new(0), PromptChar::Copy)
 }
 
 /// Lets the user type text. It returns the string after the user presses 'enter'.
@@ -710,21 +710,21 @@ pub fn input_field() -> String{
 /// println!("You typed: {}", input1);
 /// ```
 pub fn input_field_scrollable(history: &mut InputHistory) -> String{
-    input_field_raw(history, Option::None)
+    input_field_raw(history, PromptChar::Copy)
 }
 
 /// Lets the user type text. It returns the string after the user presses 'enter'.
 /// It supports all functions ```input_field()``` supports.
-/// It hides the typed in text byt subsituting it for a character of your choice.
+/// You can specify your own ```InputHistory``` and ```PromptChar```.
 /// 
 /// # Example
 /// 
 /// ```use term_basics_linux as tbl;
-/// let password = tbl::input_field_hidden('*'); //Hide the users password as it is typed in!
+/// let password = tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('*')); //Hide the users password as it is typed in!
 /// tbl::println_style(password, tbl::TextStyle::Bold); // THAN PRINT IT OUT
 /// ```
-pub fn input_field_hidden(ch: char) -> String{
-    input_field_raw(&mut InputHistory::new(0), Option::Some(ch))
+pub fn input_field_custom(his: &mut InputHistory, pc: PromptChar) -> String{
+    input_field_raw(his, pc)
 }
 
 /// Call this before ```input_field``` or it's variations if you want to NOT print a newline(```\n```) after the user presses enter.
@@ -759,8 +759,26 @@ pub fn discard_newline_on_prompt_nexttime(){
 pub fn use_newline_on_prompt(){
     USE_NEWLINE_PROMPT.store(0, Ordering::Relaxed);
 }
+/// What kind of character the prompt will print.
+/// ```Copy``` will just print what the user types in.
+/// ```Substitude(char)``` will print that character.
+/// ```None``` will not print anything at all.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy));
+/// tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('#')));
+/// tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::None));
+/// ```
+pub enum PromptChar{
+    Copy,
+    Substitude(char),
+    None,
+}
 
-fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
+fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
     fn charvec_to_string(vec: &[char]) -> String{
         let mut string = String::new();
         for &ch in vec {
@@ -768,18 +786,18 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
         }
         string
     }
-    fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, hstate: &mut u8, pos: &mut usize, sub: Option<char>){
+    fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, hstate: &mut u8, pos: &mut usize, pc: &PromptChar){
         let ch = ch as char;
         buff.insert(*pos, ch);
         if *pos != buff.len() - 1{
             for item in buff.iter().skip(*pos){
-                put_char(*item, sub);
+                put_char(*item, pc);
             }
             for _ in  *pos..buff.len()-1{
                 print!("{}", 8 as char);
             }
         }else{
-            put_char(ch, sub);
+            put_char(ch, pc);
         }
         *hstate = 0;
         *gstate = 0;
@@ -798,17 +816,17 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
             buff.push(ch);
         }
     }
-    fn write_all(buff: &Vec<char>, sub: Option<char>){
+    fn write_all(buff: &Vec<char>, pc: &PromptChar){
         for item in buff.iter(){
-            put_char(*item, sub);
+            put_char(*item, pc);
         }
     }
-    fn scroll_action(res: &mut Vec<char>, pos: &mut usize, history: &InputHistory, his_index: i32, sub: Option<char>){
+    fn scroll_action(res: &mut Vec<char>, pos: &mut usize, history: &InputHistory, his_index: i32, pc: &PromptChar){
         let val = history.get_index(his_index);
         if let Some(valv) = val{
             let old_len = delete_all(res);
             feed_into_buffer(res, valv);
-            write_all(&res, sub);
+            write_all(&res, pc);
             *pos = res.len();
             let diff = old_len as i32 - res.len() as i32;
             if diff <= 0 { return; }
@@ -820,12 +838,12 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
             }
         }
     }
-    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8, sub: Option<char>){
+    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8, pc: &PromptChar){
         if res.is_empty() { return; }
         if *pos >= res.len() - 1 { return; }
         res.remove(*pos);
         for item in res.iter().skip(*pos){
-            put_char(*item, sub);
+            put_char(*item, pc);
         }
         print!(" ");
         for _ in *pos..res.len()+1{
@@ -840,12 +858,12 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
         *pos = res.len();
         *hoen_state = 0;
     }
-    fn put_char(ch: char, sub: Option<char>){
-        if let Some(subv) = sub{
-            print!("{}", subv);
-        } else{
-            print!("{}", ch);
-        }
+    fn put_char(ch: char, pc: &PromptChar){
+        match pc{
+            PromptChar::Copy => print!("{}", ch),
+            PromptChar::Substitude(sch) => print!("{}", sch),
+            PromptChar::None => {},
+        };
     }
 
     let mut res = Vec::new();
@@ -874,7 +892,7 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
                 print!("{}", 8 as char);
                 //print!("\x1B[1D"); //also works
                 for item in res.iter().skip(pos-1){
-                    put_char(*item, sub);
+                    put_char(*item, &pc);
                 }
                 print!(" ");
                 for _ in pos-1..res.len()+1{
@@ -891,27 +909,27 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
                 if gstate == 1 { gstate = 2; }
                 if hoen_state == 1 { hoen_state = 2; }
                 if gstate == 2 || hoen_state == 2 { continue; }
-                typed_char(91, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
+                typed_char(91, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
             }
             65 => { //up arrow
                 if gstate == 2 {
                     gstate = 0; 
                     his_index += 1;
-                    scroll_action(&mut res, &mut pos, &history, his_index, sub);
+                    scroll_action(&mut res, &mut pos, &history, his_index, &pc);
                 }
-                else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
+                else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
             }
             66 => { //down arrow
                 if gstate == 2 {
                     gstate = 0; 
                     his_index -= 1;
-                    scroll_action(&mut res, &mut pos, &history, his_index, sub);
+                    scroll_action(&mut res, &mut pos, &history, his_index, &pc);
                 }
-                else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
+                else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
             }
             72 => { //home key
                 if hoen_state != 2 { 
-                    typed_char(72, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
+                    typed_char(72, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
                     continue;
                 }
                 for _ in 0..pos {
@@ -922,7 +940,7 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
             }
             51 => {
                 if gstate != 2 {
-                    typed_char(51, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
+                    typed_char(51, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
                 }
                 else {
                     gstate = 3;
@@ -930,14 +948,14 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
             }
             52 => { //end key 3e char
                 if hoen_state == 2 { hoen_state = 3; }
-                else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
+                else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
             }
             70 =>{ //end(27-91-70)
                 if hoen_state == 2 {
                     end(&mut res, &mut pos, &mut hoen_state);
                 }
                 else{
-                    typed_char(70, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
+                    typed_char(70, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
                 }
             }
             126 => { //end(27-91-52-126) or delete(27-91-51-126)
@@ -945,19 +963,19 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
                     end(&mut res, &mut pos, &mut hoen_state);
                 }
                 else if gstate >= 2{ //delete
-                    delete(&mut res, &mut pos, &mut gstate, sub);
+                    delete(&mut res, &mut pos, &mut gstate, &pc);
                 }
                 else {
-                    typed_char(126, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
+                    typed_char(126, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
                 }
                 
             }
             80 => { //delete key with code 27-91-80
                 if gstate != 2 { 
-                    typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub);
+                    typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
                     continue;
                 }
-                delete(&mut res, &mut pos, &mut gstate, sub);
+                delete(&mut res, &mut pos, &mut gstate, &pc);
             }
             67 => {  //right arrow
                 if gstate == 2 {
@@ -965,7 +983,7 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
                     gstate = 0;
                     pos = min(pos + 1, res.len());
                 }
-                else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
+                else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
             }
             68 => {  //left arrow
                 if gstate == 2 {
@@ -973,9 +991,9 @@ fn input_field_raw(history: &mut InputHistory, sub: Option<char>) -> String{
                     gstate = 0;
                     pos = max(pos as i32 - 1, 0 as i32) as usize;
                 }
-                else { typed_char(68, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
+                else { typed_char(68, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
             }
-            x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos, sub); }
+            x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
         }
     }
     let string = charvec_to_string(&res);
@@ -1084,11 +1102,33 @@ pub fn prompt_scrollable(msg: &str, his: &mut InputHistory) -> String{
 /// 
 /// ```
 /// use term_basics_linux as tbl;
-/// let password = tbl::prompt_hidden("Enter password: ", '*'); // Hide the users password as it is typed in!
+/// let password = tbl::prompt_masked("Enter password: ", '*'); // Hide the users password as it is typed in!
 /// tbl::println_style(password, tbl::TextStyle::Blink); // show it to the world with some extra spice.
 /// ```
-pub fn prompt_hidden(msg: &str, ch: char) -> String{
+pub fn prompt_masked(msg: &str, ch: char) -> String{
     print(msg);
     flush().expect("term_basics_linux: Error: stdout flush failed.");
-    input_field_hidden(ch)
+    input_field_custom(&mut InputHistory::new(0), PromptChar::Substitude(ch))
+}
+
+/// Prints a message to the user.
+/// The user can type its input next to the message on the same line.
+/// It will return the user input after the user pressed enter.
+/// It uses term_basics_linux::input_field_custom and supports the same operations.
+/// So you can provide your own InputHistory and PromptChar.
+/// 
+/// # Example
+/// 
+/// ```
+/// use term_basics_linux as tbl;
+/// let mut his = tbl::InputHistory::new(2);
+/// his.add(&"hidden option 0".to_string());
+/// his.add(&"hidden option 1".to_string());//provide options but the user can't see them.
+/// let x = tbl::prompt_custom("enter input:", &mut his, tbl::PromptChar::None);
+/// tbl::println(x);
+/// ```
+pub fn prompt_custom(msg: &str, his: &mut InputHistory, pc: PromptChar) -> String{
+    print(msg);
+    flush().expect("term_basics_linux: Error: stdout flush failed.");
+    input_field_custom(his, pc)
 }
