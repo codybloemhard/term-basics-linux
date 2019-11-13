@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_prompt_custom();
+    test_println_cols_style();
 }
 
 fn test_getch(){
@@ -263,6 +263,11 @@ fn test_prompt_custom(){
     his.add(&"hidden option 1".to_string());//provide options but the user can't see them.
     let x = tbl::prompt_custom("enter input:", &mut his, tbl::PromptChar::None);
     tbl::println(x);
+}
+
+fn test_println_cols_style(){
+    use term_basics_linux as tbl;
+    tbl::println_cols_style("test", tbl::UserColour::Red, tbl::UserColour::Yellow, tbl::TextStyle::Crossed);
 }
 
 //documentation integration tests, that are not included above

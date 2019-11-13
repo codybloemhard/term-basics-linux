@@ -538,8 +538,8 @@ pub fn println_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
 /// tbl::print_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
 /// ```
 pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour, sty: TextStyle){
-    use_colours(fg, bg);
     use_style(sty);
+    use_colours(fg, bg);
     print!("{}", msg);
     restore_colours();
     restore_style();
@@ -553,8 +553,8 @@ pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserCo
 /// tbl::println_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
 /// ```
 pub fn println_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour, sty: TextStyle){
-    use_colours(fg, bg);
     use_style(sty);
+    use_colours(fg, bg);
     println!("{}", msg);
     restore_colours();
     restore_style();
