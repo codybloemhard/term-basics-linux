@@ -2,7 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
-    test_println_cols_style();
+    test_prompt();
 }
 
 fn test_getch(){

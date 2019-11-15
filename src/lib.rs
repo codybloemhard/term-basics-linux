@@ -772,6 +772,7 @@ pub fn use_newline_on_prompt(){
 /// tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('#')));
 /// tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::None));
 /// ```
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PromptChar{
     Copy,
     Substitude(char),
@@ -786,27 +787,29 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
         }
         string
     }
-    fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, hstate: &mut u8, pos: &mut usize, pc: &PromptChar){
+    fn typed_char(ch: u8, buff: &mut Vec<char>, gstate: &mut u8, hstate: &mut u8, pos: &mut usize, pc: PromptChar){
         let ch = ch as char;
         buff.insert(*pos, ch);
-        if *pos != buff.len() - 1{
-            for item in buff.iter().skip(*pos){
-                put_char(*item, pc);
+        if pc != PromptChar::None{
+            if *pos != buff.len() - 1{
+                for item in buff.iter().skip(*pos){
+                    put_char(*item, pc);
+                }
+                go_back(*pos,buff.len()-1,pc);
+            }else{
+                put_char(ch, pc);
             }
-            for _ in  *pos..buff.len()-1{
-                print!("{}", 8 as char);
-            }
-        }else{
-            put_char(ch, pc);
         }
         *hstate = 0;
         *gstate = 0;
         *pos += 1;
     }
-    fn delete_all(buff: &mut Vec<char>) -> usize{
-        for _ in 0..buff.len(){
-            print!("{}", 8 as char);
+    fn delete_all(buff: &mut Vec<char>, pc: PromptChar) -> usize{
+        if pc == PromptChar::None {
+            buff.clear();
+            return 0;
         }
+        go_back(0, buff.len(), pc);
         let len = buff.len();
         buff.clear();
         len
@@ -816,18 +819,19 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             buff.push(ch);
         }
     }
-    fn write_all(buff: &Vec<char>, pc: &PromptChar){
+    fn write_all(buff: &Vec<char>, pc: PromptChar){
         for item in buff.iter(){
             put_char(*item, pc);
         }
     }
-    fn scroll_action(res: &mut Vec<char>, pos: &mut usize, history: &InputHistory, his_index: i32, pc: &PromptChar){
+    fn scroll_action(res: &mut Vec<char>, pos: &mut usize, history: &InputHistory, his_index: i32, pc: PromptChar){
         let val = history.get_index(his_index);
         if let Some(valv) = val{
-            let old_len = delete_all(res);
             feed_into_buffer(res, valv);
-            write_all(&res, pc);
             *pos = res.len();
+            if pc == PromptChar::None { return; }
+            let old_len = delete_all(res, pc);
+            write_all(&res, pc);
             let diff = old_len as i32 - res.len() as i32;
             if diff <= 0 { return; }
             for _ in 0..diff{
@@ -838,32 +842,38 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             }
         }
     }
-    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8, pc: &PromptChar){
+    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8, pc: PromptChar){
         if res.is_empty() { return; }
         if *pos >= res.len() - 1 { return; }
         res.remove(*pos);
         for item in res.iter().skip(*pos){
             put_char(*item, pc);
         }
-        print!(" ");
-        for _ in *pos..res.len()+1{
-            print!("{}", 8 as char);
-        }
+        if pc != PromptChar::None { print!(" "); }
+        go_back(*pos,res.len()+1, pc);
         *gstate = 0;
     }
-    fn end(res: &mut Vec<char>, pos: &mut usize, hoen_state: &mut u8){
-        for _ in *pos..res.len() {
-            print!("\x1B[1C");
+    fn end(res: &mut Vec<char>, pos: &mut usize, hoen_state: &mut u8, pc: PromptChar){
+        if pc != PromptChar::None {
+            for _ in *pos..res.len() {
+                print!("\x1B[1C");
+            }
         }
-        *pos = res.len();
         *hoen_state = 0;
+        *pos = res.len();
     }
-    fn put_char(ch: char, pc: &PromptChar){
+    fn put_char(ch: char, pc: PromptChar){
         match pc{
             PromptChar::Copy => print!("{}", ch),
             PromptChar::Substitude(sch) => print!("{}", sch),
             PromptChar::None => {},
         };
+    }
+    fn go_back(start: usize, end: usize, pc: PromptChar){
+        if pc == PromptChar::None { return; }
+        for _ in  start..end{
+            print!("{}", 8 as char);
+        }
     }
 
     let mut res = Vec::new();
@@ -889,14 +899,14 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
                 if res.is_empty() { continue; }
                 if pos <= 0 { continue; }
                 res.remove(pos - 1);
-                print!("{}", 8 as char);
-                //print!("\x1B[1D"); //also works
-                for item in res.iter().skip(pos-1){
-                    put_char(*item, &pc);
-                }
-                print!(" ");
-                for _ in pos-1..res.len()+1{
+                if pc != PromptChar::None { 
                     print!("{}", 8 as char);
+                    //print!("\x1B[1D"); //also works
+                    for item in res.iter().skip(pos-1){
+                        put_char(*item, pc);
+                    }
+                    print!(" ");
+                    go_back(pos-1,res.len()+1,pc);
                 }
                 pos -= 1;
                 gstate = 0;
@@ -909,38 +919,36 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
                 if gstate == 1 { gstate = 2; }
                 if hoen_state == 1 { hoen_state = 2; }
                 if gstate == 2 || hoen_state == 2 { continue; }
-                typed_char(91, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
+                typed_char(91, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc);
             }
             65 => { //up arrow
                 if gstate == 2 {
                     gstate = 0; 
                     his_index += 1;
-                    scroll_action(&mut res, &mut pos, &history, his_index, &pc);
+                    scroll_action(&mut res, &mut pos, &history, his_index, pc);
                 }
-                else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
+                else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
             66 => { //down arrow
                 if gstate == 2 {
                     gstate = 0; 
                     his_index -= 1;
-                    scroll_action(&mut res, &mut pos, &history, his_index, &pc);
+                    scroll_action(&mut res, &mut pos, &history, his_index, pc);
                 }
-                else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
+                else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
             72 => { //home key
                 if hoen_state != 2 { 
-                    typed_char(72, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
+                    typed_char(72, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc);
                     continue;
                 }
-                for _ in 0..pos {
-                    print!("{}", 8 as char);
-                }
+                go_back(0, pos, pc);
                 pos = 0;
                 hoen_state = 0;
             }
             51 => {
                 if gstate != 2 {
-                    typed_char(51, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
+                    typed_char(51, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc);
                 }
                 else {
                     gstate = 3;
@@ -948,52 +956,53 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             }
             52 => { //end key 3e char
                 if hoen_state == 2 { hoen_state = 3; }
-                else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
+                else { typed_char(52, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
             70 =>{ //end(27-91-70)
                 if hoen_state == 2 {
-                    end(&mut res, &mut pos, &mut hoen_state);
+                    end(&mut res, &mut pos, &mut hoen_state, pc);
                 }
                 else{
-                    typed_char(70, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
+                    typed_char(70, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc);
                 }
             }
             126 => { //end(27-91-52-126) or delete(27-91-51-126)
                 if hoen_state == 3 { //end
-                    end(&mut res, &mut pos, &mut hoen_state);
+                    end(&mut res, &mut pos, &mut hoen_state, pc);
                 }
                 else if gstate >= 2{ //delete
-                    delete(&mut res, &mut pos, &mut gstate, &pc);
+                    delete(&mut res, &mut pos, &mut gstate, pc);
                 }
                 else {
-                    typed_char(126, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
+                    typed_char(126, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc);
                 }
-                
             }
             80 => { //delete key with code 27-91-80
                 if gstate != 2 { 
-                    typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc);
+                    typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc);
                     continue;
                 }
-                delete(&mut res, &mut pos, &mut gstate, &pc);
+                delete(&mut res, &mut pos, &mut gstate, pc);
             }
             67 => {  //right arrow
                 if gstate == 2 {
-                    if pos < res.len() { print!("\x1B[1C"); }
-                    gstate = 0;
                     pos = min(pos + 1, res.len());
+                    gstate = 0;
+                    if pc == PromptChar::None { continue; }
+                    if pos < res.len() { print!("\x1B[1C"); }
                 }
-                else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
+                else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
             68 => {  //left arrow
                 if gstate == 2 {
-                    if pos > 0 { print!("{}", 8 as char); }
-                    gstate = 0;
                     pos = max(pos as i32 - 1, 0 as i32) as usize;
+                    gstate = 0;
+                    if pc == PromptChar::None { continue; }
+                    if pos > 0 { print!("{}", 8 as char); }
                 }
-                else { typed_char(68, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
+                else { typed_char(68, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
-            x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos, &pc); }
+            x => { typed_char(x, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
         }
     }
     let string = charvec_to_string(&res);
