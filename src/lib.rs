@@ -83,9 +83,9 @@ static STYLE: AtomicU8 = AtomicU8::new(0);
 static USE_NEWLINE_PROMPT: AtomicU8 = AtomicU8::new(0);
 
 /// Resets foreground colour, background colour and text style.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::reset_all();
@@ -94,7 +94,7 @@ pub fn reset_all(){
     print!("\x1B[00m");
 }
 
-/// Colours available. The user has defined the exact values of 
+/// Colours available. The user has defined the exact values of
 /// these colours for there TTY or emulator.
 #[derive(PartialEq,Eq,Clone,ToPrimitive)]
 pub enum UserColour {
@@ -111,9 +111,9 @@ pub enum UserColour {
 
 impl UserColour {
     /// Iterate over all colours in the enum
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use term_basics_linux as tbl;
     /// for col in tbl::UserColour::iterator(){
@@ -122,7 +122,7 @@ impl UserColour {
     /// ```
     pub fn iterator() -> Iter<'static, Self> {
         static ARR: [UserColour; 9] = [
-            UserColour::Std, 
+            UserColour::Std,
             UserColour::Black,
             UserColour::Red,
             UserColour::Green,
@@ -147,9 +147,9 @@ pub enum TextStyle {
     Crossed     = 9,
 }
 /// Iterate over all styles.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// for sty in tbl::TextStyle::iterator(){
@@ -176,9 +176,9 @@ pub enum FGBG { FG, BG }
 /// Sets the colour of the text printed after this call.
 /// It will print linux colour escape characters to std out.
 /// It will set the state, so you can use ```restore_colour``` to get it back.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// for i in tbl::UserColour::iterator(){
@@ -199,9 +199,9 @@ pub fn set_colour(col: UserColour, fgbg: FGBG){
 /// Sets the colour of the text printed after this call.
 /// It will print linux colour escape characters to std out.
 /// It will not set the state, so you can not use ```restore_colour``` to get this state back.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::use_colour(tbl::UserColour::Blue, tbl::FGBG::FG);
@@ -233,9 +233,9 @@ fn _set_colour(col: UserColour, fgbg: FGBG, update_state: bool){
 }
 /// Restores the colour from the state.
 /// ```set_colour``` will set the state and use colour will not.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::set_colour(tbl::UserColour::Red, tbl::FGBG::FG);
@@ -261,9 +261,9 @@ pub fn restore_colour(fgbg: FGBG){
 /// Sets both foreground and background colours.
 /// It will print linux colour escape characters to std out.
 /// It will set the state.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// for fg in tbl::UserColour::iterator(){
@@ -280,9 +280,9 @@ pub fn set_colours(fg: UserColour, bg: UserColour){
 /// Sets both foreground and background colours.
 /// It will print linux colour escape characters to std out.
 /// It will not set the state.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// for fg in tbl::UserColour::iterator(){
@@ -298,9 +298,9 @@ pub fn use_colours(fg: UserColour, bg: UserColour){
 }
 /// Restores all colours from state.
 /// It is used after a call like ```use_colour``` to get back to the old colours.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::set_colours(tbl::UserColour::Green, tbl::UserColour::Magenta);
@@ -317,9 +317,9 @@ pub fn restore_colours(){
 /// Sets the style of the text printed after this call.
 /// It will print linux colour escape characters to std out.
 /// It will also set the state.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// for i in tbl::TextStyle::iterator(){
@@ -333,9 +333,9 @@ pub fn set_style(sty: TextStyle){
 /// Sets the style of the text printed after this call.
 /// It will print linux colour escape characters to std out.
 /// It will not set the state so you can not restore it.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// for i in tbl::TextStyle::iterator(){
@@ -366,9 +366,9 @@ fn _set_style(sty: TextStyle, update_state: bool){
 /// Restores the style from the state.
 /// The state is set after calls like ```set_style```
 /// Usually you restore it after a call like ```use_style```.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::set_style(tbl::TextStyle::Bold);
@@ -391,9 +391,9 @@ pub fn restore_style(){
 /// Resets all the colours.
 /// It set the foreground and background colours to the standard colours, whatever they may be.
 /// This depends on your terminal emulator and or settings like bashrc or zshrc.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::set_colours(tbl::UserColour::Magenta, tbl::UserColour::Yellow);
@@ -410,9 +410,9 @@ pub fn reset_colours(){
 
 /// Resets the style.
 /// It sets the style to the default style.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::set_colours(tbl::UserColour::Cyan, tbl::UserColour::Red);
@@ -429,9 +429,9 @@ pub fn reset_style(){
 
 /// Print to stdout, it is just  print!("{}", msg);
 /// Here to stay consistent
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::print("cool and good");
@@ -441,9 +441,9 @@ pub fn print<T: std::fmt::Display>(msg: T){
 }
 /// Print to stdout, it is just  println!("{}", msg);
 /// Here to stay consistent
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::println("cool and good");
@@ -452,9 +452,9 @@ pub fn println<T: std::fmt::Display>(msg: T){
     println!("{}", msg);
 }
 /// Print to stdout with a text colour.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::print_col("orang no!", tbl::UserColour::Yellow);
@@ -465,9 +465,9 @@ pub fn print_col<T: std::fmt::Display>(msg: T, col: UserColour){
     restore_colour(FGBG::FG);
 }
 /// Print to stdout with a text colour.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::println_col("orang no!", tbl::UserColour::Yellow);
@@ -478,9 +478,9 @@ pub fn println_col<T: std::fmt::Display>(msg: T, col: UserColour){
     restore_colour(FGBG::FG);
 }
 /// Print to stdout with text and background colours.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::print_cols("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black);
@@ -491,9 +491,9 @@ pub fn print_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
     restore_colours();
 }
 /// Print to stdout with text and background colours.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::println_cols("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black);
@@ -504,9 +504,9 @@ pub fn println_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour
     restore_colours();
 }
 /// Print to stdout with text style.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::print_style("I am bold.", tbl::TextStyle::Bold);
@@ -517,9 +517,9 @@ pub fn print_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
     restore_style();
 }
 /// Print to stdout with text style.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::println_style("I am bold.", tbl::TextStyle::Bold);
@@ -530,9 +530,9 @@ pub fn println_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
     restore_style();
 }
 /// Print to stdout with text and background colours and style.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::print_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
@@ -545,9 +545,9 @@ pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserCo
     restore_style();
 }
 /// Print to stdout with text and background colours and style.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::println_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
@@ -559,11 +559,11 @@ pub fn println_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: User
     restore_colours();
     restore_style();
 }
-/// Returns the character as u8 typed by the user. 
+/// Returns the character as u8 typed by the user.
 /// It will return immediately after being typed, without the user pressing 'enter'.
 ///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// //print user input until spacebar is pressed
@@ -584,14 +584,14 @@ pub fn getch() -> u8{
     let mut reader = io::stdin();
     let mut buffer = [0;1];
     stdout.lock().flush().unwrap();
-    reader.read_exact(&mut buffer).unwrap();
+    reader.lock().read_exact(&mut buffer).unwrap();
     tcsetattr(stdin, TCSANOW, & termios).unwrap();
     buffer[0]
 }
 /// Prints the result of getch as u8, infinite loop. Can be used for testing.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// let user_input = tbl::test_chars();
@@ -610,9 +610,9 @@ pub struct InputHistory{
 
 impl InputHistory{
     /// Make a new InputHistory with a certain maximum capacity.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use term_basic_linux as tbl;
     /// let mut his = tbl::InputHistory::new(10);
@@ -633,9 +633,9 @@ impl InputHistory{
     /// Adds an element to the history.
     /// It will delete items if it's length would grow past the max length.
     /// the oldest items will be removed.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use term_basics_linux as tbl;
     /// let mut his = tbl::InputHistory::new(2);
@@ -651,9 +651,9 @@ impl InputHistory{
     }
     /// Returns the an Option of String, the element at the given index.
     /// The index wraps and you can query for negative indices as well as indices above the maximum length.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use term_basics_linux as tbl;
     /// let mut his = tbl::InputHistory::new(3);
@@ -680,12 +680,12 @@ impl InputHistory{
 }
 
 /// Lets the user type text. It returns the string after the user presses 'enter'.
-/// It supports moving the cursor with the arrow keys, 
+/// It supports moving the cursor with the arrow keys,
 /// going to the begin and end of the line using 'home' and 'end'
 /// and deleting characters with backspace and the delete key.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// let user_input = tbl::input_field();
@@ -716,9 +716,9 @@ pub fn input_field_scrollable(history: &mut InputHistory) -> String{
 /// Lets the user type text. It returns the string after the user presses 'enter'.
 /// It supports all functions ```input_field()``` supports.
 /// You can specify your own ```InputHistory``` and ```PromptChar```.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```use term_basics_linux as tbl;
 /// let password = tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('*')); //Hide the users password as it is typed in!
 /// tbl::println_style(password, tbl::TextStyle::Bold); // THAN PRINT IT OUT
@@ -730,9 +730,9 @@ pub fn input_field_custom(his: &mut InputHistory, pc: PromptChar) -> String{
 /// Call this before ```input_field``` or it's variations if you want to NOT print a newline(```\n```) after the user presses enter.
 /// This will work for the next time you call any version of ```input_field```.
 /// To cancel it you can call ```use_newline_on_prompt```.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::discard_newline_on_prompt_nexttime();
@@ -746,9 +746,9 @@ pub fn discard_newline_on_prompt_nexttime(){
 /// Call this to let any variation of ```input_field``` print a newline after the user presses enter.
 /// This is not needed, they will print a newline by default.
 /// This is used to cancel ```discard_newline_on_prompt_nexttime```.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::discard_newline_on_prompt_nexttime();//use somewhere
@@ -763,9 +763,9 @@ pub fn use_newline_on_prompt(){
 /// ```Copy``` will just print what the user types in.
 /// ```Substitude(char)``` will print that character.
 /// ```None``` will not print anything at all.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy));
@@ -899,7 +899,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
                 if res.is_empty() { continue; }
                 if pos <= 0 { continue; }
                 res.remove(pos - 1);
-                if pc != PromptChar::None { 
+                if pc != PromptChar::None {
                     print!("{}", 8 as char);
                     //print!("\x1B[1D"); //also works
                     for item in res.iter().skip(pos-1){
@@ -914,7 +914,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             27 => { //first char in arrow code and home/end code and other char combos
                 gstate = 1;
                 hoen_state = 1;
-            } 
+            }
             91 => { //2nd char in arrow code and home/end code and other char combos
                 if gstate == 1 { gstate = 2; }
                 if hoen_state == 1 { hoen_state = 2; }
@@ -923,7 +923,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             }
             65 => { //up arrow
                 if gstate == 2 {
-                    gstate = 0; 
+                    gstate = 0;
                     his_index += 1;
                     scroll_action(&mut res, &mut pos, &history, his_index, pc);
                 }
@@ -931,14 +931,14 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             }
             66 => { //down arrow
                 if gstate == 2 {
-                    gstate = 0; 
+                    gstate = 0;
                     his_index -= 1;
                     scroll_action(&mut res, &mut pos, &history, his_index, pc);
                 }
                 else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
             72 => { //home key
-                if hoen_state != 2 { 
+                if hoen_state != 2 {
                     typed_char(72, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc);
                     continue;
                 }
@@ -978,7 +978,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
                 }
             }
             80 => { //delete key with code 27-91-80
-                if gstate != 2 { 
+                if gstate != 2 {
                     typed_char(80, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc);
                     continue;
                 }
@@ -1026,9 +1026,9 @@ pub fn string_to_bool(string: &str) -> bool{
 }
 
 /// Small helper to parse string to a value
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// let user_input = tbl::prompt("type your age: ");
@@ -1043,20 +1043,20 @@ pub fn string_to_value<T: std::str::FromStr>(string: &str) -> Option<T>{
     res.ok()
 }
 
-/// Flushes stdout. 
+/// Flushes stdout.
 /// When you do print! or term-basics-linux equivalent, it will not print immediately.
 /// For example if you print! and then input_field(), it will print after you typed in the input.
 /// flush() will make sure everything is printed first.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// print("type: ");
 /// flush().expect("oh no");
 /// let x = input_field();
 /// ```
-/// 
+///
 /// This example is the same as ``` let x = tbl::prompt("type: "); ```
 pub fn flush() -> io::Result<()>{
     std::io::stdout().flush()
@@ -1066,9 +1066,9 @@ pub fn flush() -> io::Result<()>{
 /// The user can  type its input next to the message on the same line.
 /// It will return the user input after the user pressed enter.
 /// It uses term_basics_linux::input_field and supports the same operations.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// let name = tbl::prompt("type your name: ");
@@ -1085,9 +1085,9 @@ pub fn prompt(msg : &str) -> String{
 /// The user can type its input next to the message on the same line.
 /// It will return the user input after the user pressed enter.
 /// It uses term_basics_linux::input_field_scrollable and supports the same operations.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// let mut his = tbl::InputHistory::new(10);
@@ -1106,9 +1106,9 @@ pub fn prompt_scrollable(msg: &str, his: &mut InputHistory) -> String{
 /// The user can type its input next to the message on the same line.
 /// It will return the user input after the user pressed enter.
 /// It uses term_basics_linux::input_field_scrollable and supports the same operations.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// let password = tbl::prompt_masked("Enter password: ", '*'); // Hide the users password as it is typed in!
@@ -1125,9 +1125,9 @@ pub fn prompt_masked(msg: &str, ch: char) -> String{
 /// It will return the user input after the user pressed enter.
 /// It uses term_basics_linux::input_field_custom and supports the same operations.
 /// So you can provide your own InputHistory and PromptChar.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use term_basics_linux as tbl;
 /// let mut his = tbl::InputHistory::new(2);
