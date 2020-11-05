@@ -986,19 +986,23 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             }
             67 => {  //right arrow
                 if gstate == 2 {
+                    let old_pos = pos;
                     pos = min(pos + 1, res.len());
                     gstate = 0;
                     if pc == PromptChar::None { continue; }
-                    if pos < res.len() { print!("\x1B[1C"); }
+                    // if pos < res.len() { print!("\x1B[1C"); }
+                    if pos > old_pos { print!("\x1B[1C"); }
                 }
                 else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
             68 => {  //left arrow
                 if gstate == 2 {
+                    let old_pos = pos;
                     pos = max(pos as i32 - 1, 0 as i32) as usize;
                     gstate = 0;
                     if pc == PromptChar::None { continue; }
-                    if pos > 0 { print!("{}", 8 as char); }
+                    // if pos > 0 { print!("{}", 8 as char); }
+                    if pos < old_pos { print!("{}", 8 as char); }
                 }
                 else { typed_char(68, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
