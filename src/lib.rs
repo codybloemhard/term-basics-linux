@@ -1,3 +1,20 @@
+//! # Examples
+//! ```
+//! use term_basics_linux as tbl;
+//! for sty in tbl::TextStyle::iterator(){
+//!     for bg in tbl::UserColour::iterator(){
+//!         for fg in tbl::UserColour::iterator(){
+//!             tbl::println_cols_style("cool and good", *fg, *bg, *sty);
+//!         }
+//!     }
+//! }
+//! ```
+//! ```
+//! use term_basics_linux as tbl;
+//! let name = tbl::prompt("type your name: ");
+//! tbl::print("Your name: ");
+//! tbl::println(name);
+//! ```
 #[cfg(test)]
 mod tests {
     #[test]
@@ -49,22 +66,7 @@ mod tests {
         assert_eq!(t, Option::Some(false));
     }
 }
-/// # Examples
-/// ```
-/// use term_basics_linux as tbl;
-/// for sty in tbl::TextStyle::iterator(){
-///     for bg in tbl::UserColour::iterator(){
-///         for fg in tbl::UserColour::iterator(){
-///             tbl::println_cols_style("cool and good", fg, bg, sty);
-///         }
-///     }
-/// }
-/// ```
-/// ```
-/// let name = tbl::prompt("type your name: ");
-/// tbl::print("Your name: ");
-/// tbl::println(name);
-/// ```
+
 use std::io;
 use std::io::Write; //flush stdout
 use std::io::Read;
@@ -96,7 +98,7 @@ pub fn reset_all(){
 
 /// Colours available. The user has defined the exact values of
 /// these colours for there TTY or emulator.
-#[derive(PartialEq,Eq,Clone,ToPrimitive)]
+#[derive(PartialEq,Eq,Clone,Copy,ToPrimitive)]
 pub enum UserColour {
     Std     = 9,
     Black   = 0,
@@ -135,7 +137,7 @@ impl UserColour {
     }
 }
 /// All styles that do not alter fg or bg colours.
-#[derive(PartialEq,Eq,Clone,ToPrimitive)]
+#[derive(PartialEq,Eq,Clone,Copy,ToPrimitive)]
 pub enum TextStyle {
     Std         = 0,
     Bold        = 1,
@@ -171,7 +173,7 @@ impl TextStyle {
     }
 }
 /// To specify if you set the foreground or background colour.
-#[derive(PartialEq,Eq)]
+#[derive(PartialEq,Eq,Clone,Copy)]
 pub enum FGBG { FG, BG }
 /// Sets the colour of the text printed after this call.
 /// It will print linux colour escape characters to std out.
@@ -228,7 +230,7 @@ fn _set_colour(col: UserColour, fgbg: FGBG, update_state: bool){
         }
     }
     colorcode.push_str(&format!("{}", id));
-    colorcode.push_str("m");
+    colorcode.push('m');
     print!("{}", colorcode);
 }
 /// Restores the colour from the state.
@@ -254,7 +256,7 @@ pub fn restore_colour(fgbg: FGBG){
         colorcode.push('4');
         colorcode.push_str(&format!("{}", BG_COL.load(Ordering::Relaxed)));
     }
-    colorcode.push_str("m");
+    colorcode.push('m');
     print!("{}", colorcode);
 }
 
@@ -357,7 +359,7 @@ fn _set_style(sty: TextStyle, update_state: bool){
     print!("\x1B[00m");
     let mut colorcode = String::from("\x1B[0");
     colorcode.push_str(&format!("{}", id));
-    colorcode.push_str("m");
+    colorcode.push('m');
     print!("{}", colorcode);
     print!("\x1B[3{}m", FG_COL.load(Ordering::Relaxed));
     print!("\x1B[4{}m", BG_COL.load(Ordering::Relaxed));
@@ -581,7 +583,7 @@ pub fn getch() -> u8{
     new_termios.c_lflag &= !(ICANON | ECHO);
     tcsetattr(stdin, TCSANOW, &new_termios).unwrap();
     let stdout = io::stdout();
-    let mut reader = io::stdin();
+    let reader = io::stdin();
     let mut buffer = [0;1];
     stdout.lock().flush().unwrap();
     reader.lock().read_exact(&mut buffer).unwrap();
@@ -614,7 +616,7 @@ impl InputHistory{
     /// # Example
     ///
     /// ```
-    /// use term_basic_linux as tbl;
+    /// use term_basics_linux as tbl;
     /// let mut his = tbl::InputHistory::new(10);
     /// let x = tbl::input_field_scrollable(&mut his);
     /// ```
@@ -645,8 +647,8 @@ impl InputHistory{
     /// //only "1" and "2" will remain, as 0 is removed.
     /// let _ = tbl::input_field_scrollable(&mut his);
     /// ```
-    pub fn add(&mut self, string: &String){
-        self.history.push_back(string.clone());
+    pub fn add(&mut self, string: &str){
+        self.history.push_back(string.to_string());
         self.trim();
     }
     /// Returns the an Option of String, the element at the given index.
@@ -669,7 +671,7 @@ impl InputHistory{
     /// println!("at  4: {:?}", his.get_index(4));  // "1"
     /// ```
     pub fn get_index(&self, mut index: i32) -> Option<&String>{
-        if self.history.len() != 0 {
+        if !self.history.is_empty(){
             index %= self.history.len() as i32;
         }
         if index < 0{
@@ -819,7 +821,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             buff.push(ch);
         }
     }
-    fn write_all(buff: &Vec<char>, pc: PromptChar){
+    fn write_all(buff: &[char], pc: PromptChar){
         for item in buff.iter(){
             put_char(*item, pc);
         }
@@ -897,7 +899,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             }
             127 => {  //backspace
                 if res.is_empty() { continue; }
-                if pos <= 0 { continue; }
+                if pos == 0 { continue; }
                 res.remove(pos - 1);
                 if pc != PromptChar::None {
                     print!("{}", 8 as char);
@@ -998,7 +1000,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             68 => {  //left arrow
                 if gstate == 2 {
                     let old_pos = pos;
-                    pos = max(pos as i32 - 1, 0 as i32) as usize;
+                    pos = max(pos as i32 - 1, 0_i32) as usize;
                     gstate = 0;
                     if pc == PromptChar::None { continue; }
                     // if pos > 0 { print!("{}", 8 as char); }
@@ -1015,18 +1017,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
 }
 
 pub fn string_to_bool(string: &str) -> bool{
-    match string{
-        "y" => true,
-        "ye" => true,
-        "yes" => true,
-        "ok" => true,
-        "+" => true,
-        "t" => true,
-        "tr" => true,
-        "tru" => true,
-        "true" => true,
-        _ => false,
-    }
+    matches!(string, "y" | "ye" | "yes" | "ok" | "+" | "t" | "tr" | "tru" | "true")
 }
 
 /// Small helper to parse string to a value
@@ -1036,7 +1027,7 @@ pub fn string_to_bool(string: &str) -> bool{
 /// ```
 /// use term_basics_linux as tbl;
 /// let user_input = tbl::prompt("type your age: ");
-/// let age: Option<u8> = tbl::string_to_int(&user_input);
+/// let age: Option<u8> = tbl::string_to_value(&user_input);
 /// if age.is_none() { println!("Invalid age!"); }
 /// else { println!("Your age: {}", age.unwrap()); }
 /// ```
@@ -1055,10 +1046,11 @@ pub fn string_to_value<T: std::str::FromStr>(string: &str) -> Option<T>{
 /// # Example
 ///
 /// ```
+/// use std::io::Write; //flush stdout
 /// use term_basics_linux as tbl;
-/// print("type: ");
-/// flush().expect("oh no");
-/// let x = input_field();
+/// print!("type: ");
+/// tbl::flush().expect("oh no");
+/// let x = tbl::input_field();
 /// ```
 ///
 /// This example is the same as ``` let x = tbl::prompt("type: "); ```

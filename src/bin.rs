@@ -35,12 +35,12 @@ fn test_prompt(){
 
 fn test_set_colour(){
     for i in tbl::UserColour::iterator(){
-        tbl::set_colour(i.clone(), tbl::FGBG::FG);
+        tbl::set_colour(*i, tbl::FGBG::FG);
         println!("haha yes");
     }
     tbl::set_colour(tbl::UserColour::Std, tbl::FGBG::FG);
     for i in tbl::UserColour::iterator(){
-        tbl::set_colour(i.clone(), tbl::FGBG::BG);
+        tbl::set_colour(*i, tbl::FGBG::BG);
         println!("haha yes");
     }
 }
@@ -48,7 +48,7 @@ fn test_set_colour(){
 fn test_set_style(){
     for i in tbl::TextStyle::iterator(){
         tbl::set_colour(tbl::UserColour::Std, tbl::FGBG::FG);
-        tbl::set_style(i.clone());
+        tbl::set_style(*i);
         println!("haha yes");
     }
 }
@@ -57,7 +57,7 @@ fn test_set_colours(){
     use term_basics_linux as tbl;
     for fg in tbl::UserColour::iterator(){
         for bg in tbl::UserColour::iterator(){
-            tbl::set_colours(fg.clone(), bg.clone());
+            tbl::set_colours(*fg, *bg);
             println!("haha yes");
         }
     }
@@ -69,20 +69,20 @@ fn test_all_colours_styles(){
     for sty in tbl::TextStyle::iterator(){
         for bg in tbl::UserColour::iterator(){
             for fg in tbl::UserColour::iterator(){
-                tbl::set_colour(bg.clone(), tbl::FGBG::BG);
-                tbl::set_colour(fg.clone(), tbl::FGBG::FG);
-                tbl::set_style(sty.clone());
+                tbl::set_colour(*bg, tbl::FGBG::BG);
+                tbl::set_colour(*fg, tbl::FGBG::FG);
+                tbl::set_style(*sty);
                 println!("haha yes");
             }
         }
     }
     //set style and colours independently
     for sty in tbl::TextStyle::iterator(){
-        tbl::set_style(sty.clone());
+        tbl::set_style(*sty);
         for bg in tbl::UserColour::iterator(){
-            tbl::set_colour(bg.clone(), tbl::FGBG::BG);
+            tbl::set_colour(*bg, tbl::FGBG::BG);
             for fg in tbl::UserColour::iterator(){
-                tbl::set_colour(fg.clone(), tbl::FGBG::FG);
+                tbl::set_colour(*fg, tbl::FGBG::FG);
                 println!("haha yes");
             }
         }
@@ -182,7 +182,7 @@ fn test_use_colours(){
     use term_basics_linux as tbl;
     for fg in tbl::UserColour::iterator(){
         for bg in tbl::UserColour::iterator(){
-            tbl::use_colours(fg.clone(), bg.clone());
+            tbl::use_colours(*fg, *bg);
             println!("haha yes");
         }
     }
@@ -201,7 +201,7 @@ fn test_restore_colours(){
 fn test_use_style(){
     use term_basics_linux as tbl;
     for i in tbl::TextStyle::iterator(){
-        tbl::use_style(i.clone());
+        tbl::use_style(*i);
         println!("haha yes");
     }
 }
