@@ -833,7 +833,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
             *pos = res.len();
             if pc == PromptChar::None { return; }
             let old_len = delete_all(res, pc);
-            write_all(&res, pc);
+            write_all(res, pc);
             let diff = old_len as i32 - res.len() as i32;
             if diff <= 0 { return; }
             for _ in 0..diff{
@@ -927,7 +927,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
                 if gstate == 2 {
                     gstate = 0;
                     his_index += 1;
-                    scroll_action(&mut res, &mut pos, &history, his_index, pc);
+                    scroll_action(&mut res, &mut pos, history, his_index, pc);
                 }
                 else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
@@ -935,7 +935,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String{
                 if gstate == 2 {
                     gstate = 0;
                     his_index -= 1;
-                    scroll_action(&mut res, &mut pos, &history, his_index, pc);
+                    scroll_action(&mut res, &mut pos, history, his_index, pc);
                 }
                 else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
