@@ -2,6 +2,7 @@ extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
 pub fn main(){
+    println!("This is a {}test{} with a value: {}{}{}", tbl::UC::Red, tbl::UC::Std, tbl::UC::Yellow, 1.0, tbl::UC::Std);
     test_prompt();
 }
 
@@ -34,28 +35,28 @@ fn test_prompt(){
 }
 
 fn test_set_colour(){
-    for i in tbl::UserColour::iterator(){
-        tbl::set_colour(*i, tbl::FGBG::FG);
+    for i in tbl::UC::iterator(){
+        tbl::set_colour(*i, tbl::XG::FG);
         println!("haha yes");
     }
-    tbl::set_colour(tbl::UserColour::Std, tbl::FGBG::FG);
-    for i in tbl::UserColour::iterator(){
-        tbl::set_colour(*i, tbl::FGBG::BG);
+    tbl::set_colour(tbl::UC::Std, tbl::XG::FG);
+    for i in tbl::UC::iterator(){
+        tbl::set_colour(*i, tbl::XG::BG);
         println!("haha yes");
     }
 }
 
 fn test_set_style(){
     for i in tbl::TextStyle::iterator(){
-        tbl::set_colour(tbl::UserColour::Std, tbl::FGBG::FG);
+        tbl::set_colour(tbl::UC::Std, tbl::XG::FG);
         tbl::set_style(*i);
         println!("haha yes");
     }
 }
 
 fn test_set_colours(){
-    for fg in tbl::UserColour::iterator(){
-        for bg in tbl::UserColour::iterator(){
+    for fg in tbl::UC::iterator(){
+        for bg in tbl::UC::iterator(){
             tbl::set_colours(*fg, *bg);
             println!("haha yes");
         }
@@ -65,10 +66,10 @@ fn test_set_colours(){
 fn test_all_colours_styles(){
     //can be set in any ordering
     for sty in tbl::TextStyle::iterator(){
-        for bg in tbl::UserColour::iterator(){
-            for fg in tbl::UserColour::iterator(){
-                tbl::set_colour(*bg, tbl::FGBG::BG);
-                tbl::set_colour(*fg, tbl::FGBG::FG);
+        for bg in tbl::UC::iterator(){
+            for fg in tbl::UC::iterator(){
+                tbl::set_colour(*bg, tbl::XG::BG);
+                tbl::set_colour(*fg, tbl::XG::FG);
                 tbl::set_style(*sty);
                 println!("haha yes");
             }
@@ -77,10 +78,10 @@ fn test_all_colours_styles(){
     //set style and colours independently
     for sty in tbl::TextStyle::iterator(){
         tbl::set_style(*sty);
-        for bg in tbl::UserColour::iterator(){
-            tbl::set_colour(*bg, tbl::FGBG::BG);
-            for fg in tbl::UserColour::iterator(){
-                tbl::set_colour(*fg, tbl::FGBG::FG);
+        for bg in tbl::UC::iterator(){
+            tbl::set_colour(*bg, tbl::XG::BG);
+            for fg in tbl::UC::iterator(){
+                tbl::set_colour(*fg, tbl::XG::FG);
                 println!("haha yes");
             }
         }
@@ -141,34 +142,34 @@ fn test_prompt_masked(){
 }
 
 fn test_persistant(){
-    tbl::println_col("cyan", tbl::UserColour::Cyan);
+    tbl::println_col("cyan", tbl::UC::Cyan);
     println!("after cyan");
-    tbl::set_colour(tbl::UserColour::Red, tbl::FGBG::FG);
+    tbl::set_colour(tbl::UC::Red, tbl::XG::FG);
     tbl::println("red");
-    tbl::use_colour(tbl::UserColour::Yellow, tbl::FGBG::FG);
+    tbl::use_colour(tbl::UC::Yellow, tbl::XG::FG);
     tbl::println("yellow");
-    tbl::restore_colour(tbl::FGBG::FG);
+    tbl::restore_colour(tbl::XG::FG);
     tbl::println("red");
     println!("still red");
 }
 
 fn test_use_colour(){
-    tbl::use_colour(tbl::UserColour::Blue, tbl::FGBG::FG);
+    tbl::use_colour(tbl::UC::Blue, tbl::XG::FG);
     tbl::println("henlo frens");
 }
 
 fn test_restore_colour(){
-    tbl::set_colour(tbl::UserColour::Red, tbl::FGBG::FG);
+    tbl::set_colour(tbl::UC::Red, tbl::XG::FG);
     tbl::println("this is red");
-    tbl::use_colour(tbl::UserColour::Green, tbl::FGBG::FG);
+    tbl::use_colour(tbl::UC::Green, tbl::XG::FG);
     tbl::println("this is green");
-    tbl::restore_colour(tbl::FGBG::FG);
+    tbl::restore_colour(tbl::XG::FG);
     tbl::println("this is red again");
 }
 
 fn test_use_colours(){
-    for fg in tbl::UserColour::iterator(){
-        for bg in tbl::UserColour::iterator(){
+    for fg in tbl::UC::iterator(){
+        for bg in tbl::UC::iterator(){
             tbl::use_colours(*fg, *bg);
             println!("haha yes");
         }
@@ -176,9 +177,9 @@ fn test_use_colours(){
 }
 
 fn test_restore_colours(){
-    tbl::set_colours(tbl::UserColour::Green, tbl::UserColour::Magenta);
+    tbl::set_colours(tbl::UC::Green, tbl::UC::Magenta);
     tbl::println("cool and good");
-    tbl::use_colours(tbl::UserColour::Red, tbl::UserColour::Black);
+    tbl::use_colours(tbl::UC::Red, tbl::UC::Black);
     tbl::println("warm and bad");
     tbl::restore_colours();
     tbl::println("cool and good again");
@@ -201,7 +202,7 @@ fn test_restore_style(){
 }
 
 fn test_reset_colours(){
-    tbl::set_colours(tbl::UserColour::Magenta, tbl::UserColour::Yellow);
+    tbl::set_colours(tbl::UC::Magenta, tbl::UC::Yellow);
     tbl::set_style(tbl::TextStyle::Underlined);
     tbl::println("i am magenta on yellow as well as underlined");
     tbl::reset_colours();
@@ -209,7 +210,7 @@ fn test_reset_colours(){
 }
 
 fn test_reset_style(){
-    tbl::set_colours(tbl::UserColour::Cyan, tbl::UserColour::Red);
+    tbl::set_colours(tbl::UC::Cyan, tbl::UC::Red);
     tbl::set_style(tbl::TextStyle::Blink);
     tbl::println("im am cyan on red and blinking");
     tbl::reset_style();
@@ -244,7 +245,7 @@ fn test_prompt_custom(){
 }
 
 fn test_println_cols_style(){
-    tbl::println_cols_style("test", tbl::UserColour::Red, tbl::UserColour::Yellow, tbl::TextStyle::Crossed);
+    tbl::println_cols_style("test", tbl::UC::Red, tbl::UC::Yellow, tbl::TextStyle::Crossed);
 }
 
 //documentation integration tests, that are not included above

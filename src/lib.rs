@@ -2,8 +2,8 @@
 //! ```
 //! use term_basics_linux as tbl;
 //! for sty in tbl::TextStyle::iterator(){
-//!     for bg in tbl::UserColour::iterator(){
-//!         for fg in tbl::UserColour::iterator(){
+//!     for bg in tbl::UC::iterator(){
+//!         for fg in tbl::UC::iterator(){
 //!             tbl::println_cols_style("cool and good", *fg, *bg, *sty);
 //!         }
 //!     }
@@ -96,10 +96,10 @@ pub fn reset_all(){
     print!("\x1B[00m");
 }
 
-/// Colours available. The user has defined the exact values of
+/// User Colours(UC) available. The user has defined the exact values of
 /// these colours for there TTY or emulator.
 #[derive(PartialEq,Eq,Clone,Copy,ToPrimitive)]
-pub enum UserColour {
+pub enum UC {
     Std     = 9,
     Black   = 0,
     Red     = 1,
@@ -111,31 +111,38 @@ pub enum UserColour {
     Grey    = 7,
 }
 
-impl UserColour {
+impl UC {
     /// Iterate over all colours in the enum
     ///
     /// # Example
     ///
     /// ```
     /// use term_basics_linux as tbl;
-    /// for col in tbl::UserColour::iterator(){
+    /// for col in tbl::UC::iterator(){
     ///     //use col
     /// }
     /// ```
     pub fn iterator() -> Iter<'static, Self> {
-        static ARR: [UserColour; 9] = [
-            UserColour::Std,
-            UserColour::Black,
-            UserColour::Red,
-            UserColour::Green,
-            UserColour::Yellow,
-            UserColour::Blue,
-            UserColour::Magenta,
-            UserColour::Cyan,
-            UserColour::Grey];
+        static ARR: [UC; 9] = [
+            UC::Std,
+            UC::Black,
+            UC::Red,
+            UC::Green,
+            UC::Yellow,
+            UC::Blue,
+            UC::Magenta,
+            UC::Cyan,
+            UC::Grey];
         ARR.iter()
     }
 }
+
+impl std::fmt::Display for UC{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", _get_colour(*self, XG::FG, false))
+    }
+}
+
 /// All styles that do not alter fg or bg colours.
 #[derive(PartialEq,Eq,Clone,Copy,ToPrimitive)]
 pub enum TextStyle {
@@ -174,7 +181,7 @@ impl TextStyle {
 }
 /// To specify if you set the foreground or background colour.
 #[derive(PartialEq,Eq,Clone,Copy)]
-pub enum FGBG { FG, BG }
+pub enum XG { FG, BG }
 /// Sets the colour of the text printed after this call.
 /// It will print linux colour escape characters to std out.
 /// It will set the state, so you can use ```restore_colour``` to get it back.
@@ -183,20 +190,20 @@ pub enum FGBG { FG, BG }
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// for i in tbl::UserColour::iterator(){
-///     tbl::set_colour(i.clone(), tbl::FGBG::FG);
+/// for i in tbl::UC::iterator(){
+///     tbl::set_colour(i.clone(), tbl::XG::FG);
 ///     println!("haha yes");
 /// }
 /// ```
 /// ```
 /// use term_basics_linux as tbl;
-/// for i in tbl::UserColour::iterator(){
-///     tbl::set_colour(i.clone(), tbl::FGBG::BG);
+/// for i in tbl::UC::iterator(){
+///     tbl::set_colour(i.clone(), tbl::XG::BG);
 ///     println!("haha yes");
 /// }
 /// ```
-pub fn set_colour(col: UserColour, fgbg: FGBG){
-    _set_colour(col, fgbg, true);
+pub fn set_colour(col: UC, fgbg: XG){
+    print!("{}", _get_colour(col, fgbg, true));
 }
 /// Sets the colour of the text printed after this call.
 /// It will print linux colour escape characters to std out.
@@ -206,19 +213,19 @@ pub fn set_colour(col: UserColour, fgbg: FGBG){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::use_colour(tbl::UserColour::Blue, tbl::FGBG::FG);
+/// tbl::use_colour(tbl::UC::Blue, tbl::XG::FG);
 /// tbl::println("henlo frens");
 /// ```
-pub fn use_colour(col: UserColour, fgbg: FGBG){
-    _set_colour(col, fgbg, false);
+pub fn use_colour(col: UC, fgbg: XG){
+    print!("{}", _get_colour(col, fgbg, false));
 }
 
-fn _set_colour(col: UserColour, fgbg: FGBG, update_state: bool){
+fn _get_colour(col: UC, fgbg: XG, update_state: bool) -> String{
     let _id = ToPrimitive::to_u8(&col);
     let mut id = 0;
     if let Some(_idv) = _id { id = _idv; }
     let mut colorcode = String::from("\x1B[");
-    if fgbg == FGBG::FG {
+    if fgbg == XG::FG {
         colorcode.push('3');
         if update_state{
             FG_COL.store(id, Ordering::Relaxed);
@@ -231,7 +238,7 @@ fn _set_colour(col: UserColour, fgbg: FGBG, update_state: bool){
     }
     colorcode.push_str(&format!("{}", id));
     colorcode.push('m');
-    print!("{}", colorcode);
+    colorcode
 }
 /// Restores the colour from the state.
 /// ```set_colour``` will set the state and use colour will not.
@@ -240,16 +247,16 @@ fn _set_colour(col: UserColour, fgbg: FGBG, update_state: bool){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::set_colour(tbl::UserColour::Red, tbl::FGBG::FG);
+/// tbl::set_colour(tbl::UC::Red, tbl::XG::FG);
 /// tbl::println("this is red");
-/// tbl::use_colour(tbl::UserColour::Green, tbl::FGBG::FG);
+/// tbl::use_colour(tbl::UC::Green, tbl::XG::FG);
 /// tbl::println("this is green");
-/// tbl::restore_colour(tbl::FGBG::FG);
+/// tbl::restore_colour(tbl::XG::FG);
 /// tbl::println("this is red again");
 /// ```
-pub fn restore_colour(fgbg: FGBG){
+pub fn restore_colour(fgbg: XG){
     let mut colorcode = String::from("\x1B[");
-    if fgbg == FGBG::FG{
+    if fgbg == XG::FG{
         colorcode.push('3');
         colorcode.push_str(&format!("{}", FG_COL.load(Ordering::Relaxed)));
     }else{
@@ -268,16 +275,16 @@ pub fn restore_colour(fgbg: FGBG){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// for fg in tbl::UserColour::iterator(){
-///     for bg in tbl::UserColour::iterator(){
+/// for fg in tbl::UC::iterator(){
+///     for bg in tbl::UC::iterator(){
 ///         tbl::set_colours(fg.clone(), bg.clone());
 ///         println!("haha yes");
 ///     }
 /// }
 /// ```
-pub fn set_colours(fg: UserColour, bg: UserColour){
-    set_colour(fg, FGBG::FG);
-    set_colour(bg, FGBG::BG);
+pub fn set_colours(fg: UC, bg: UC){
+    set_colour(fg, XG::FG);
+    set_colour(bg, XG::BG);
 }
 /// Sets both foreground and background colours.
 /// It will print linux colour escape characters to std out.
@@ -287,16 +294,16 @@ pub fn set_colours(fg: UserColour, bg: UserColour){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// for fg in tbl::UserColour::iterator(){
-///     for bg in tbl::UserColour::iterator(){
+/// for fg in tbl::UC::iterator(){
+///     for bg in tbl::UC::iterator(){
 ///         tbl::use_colours(fg.clone(), bg.clone());
 ///         println!("haha yes");
 ///     }
 /// }
 /// ```
-pub fn use_colours(fg: UserColour, bg: UserColour){
-    use_colour(fg, FGBG::FG);
-    use_colour(bg, FGBG::BG);
+pub fn use_colours(fg: UC, bg: UC){
+    use_colour(fg, XG::FG);
+    use_colour(bg, XG::BG);
 }
 /// Restores all colours from state.
 /// It is used after a call like ```use_colour``` to get back to the old colours.
@@ -305,16 +312,16 @@ pub fn use_colours(fg: UserColour, bg: UserColour){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::set_colours(tbl::UserColour::Green, tbl::UserColour::Magenta);
+/// tbl::set_colours(tbl::UC::Green, tbl::UC::Magenta);
 /// tbl::println("cool and good");
-/// tbl::use_colours(tbl::UserColour::Red, tbl::UserColour::Black);
+/// tbl::use_colours(tbl::UC::Red, tbl::UC::Black);
 /// tbl::println("warm and bad");
 /// tbl::restore_colours();
 /// tbl::println("cool and good again");
 /// ```
 pub fn restore_colours(){
-    restore_colour(FGBG::FG);
-    restore_colour(FGBG::BG);
+    restore_colour(XG::FG);
+    restore_colour(XG::BG);
 }
 /// Sets the style of the text printed after this call.
 /// It will print linux colour escape characters to std out.
@@ -398,7 +405,7 @@ pub fn restore_style(){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::set_colours(tbl::UserColour::Magenta, tbl::UserColour::Yellow);
+/// tbl::set_colours(tbl::UC::Magenta, tbl::UC::Yellow);
 /// tbl::set_style(tbl::TextStyle::Underlined);
 /// tbl::println("i am magenta on yellow as well as underlined");
 /// tbl::reset_colours();
@@ -417,7 +424,7 @@ pub fn reset_colours(){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::set_colours(tbl::UserColour::Cyan, tbl::UserColour::Red);
+/// tbl::set_colours(tbl::UC::Cyan, tbl::UC::Red);
 /// tbl::set_style(tbl::TextStyle::Blink);
 /// tbl::println("im am cyan on red and blinking");
 /// tbl::reset_style();
@@ -453,18 +460,19 @@ pub fn print<T: std::fmt::Display>(msg: T){
 pub fn println<T: std::fmt::Display>(msg: T){
     println!("{}", msg);
 }
+
 /// Print to stdout with a text colour.
 ///
 /// # Example
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::print_col("orang no!", tbl::UserColour::Yellow);
+/// tbl::print_col("orang no!", tbl::UC::Yellow);
 /// ```
-pub fn print_col<T: std::fmt::Display>(msg: T, col: UserColour){
-    use_colour(col, FGBG::FG);
+pub fn print_col<T: std::fmt::Display>(msg: T, col: UC){
+    use_colour(col, XG::FG);
     print!("{}", msg);
-    restore_colour(FGBG::FG);
+    restore_colour(XG::FG);
 }
 /// Print to stdout with a text colour.
 ///
@@ -472,12 +480,12 @@ pub fn print_col<T: std::fmt::Display>(msg: T, col: UserColour){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::println_col("orang no!", tbl::UserColour::Yellow);
+/// tbl::println_col("orang no!", tbl::UC::Yellow);
 /// ```
-pub fn println_col<T: std::fmt::Display>(msg: T, col: UserColour){
-    use_colour(col, FGBG::FG);
+pub fn println_col<T: std::fmt::Display>(msg: T, col: UC){
+    use_colour(col, XG::FG);
     println!("{}", msg);
-    restore_colour(FGBG::FG);
+    restore_colour(XG::FG);
 }
 /// Print to stdout with text and background colours.
 ///
@@ -485,9 +493,9 @@ pub fn println_col<T: std::fmt::Display>(msg: T, col: UserColour){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::print_cols("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black);
+/// tbl::print_cols("No vegetal!", tbl::UC::Green, tbl::UC::Black);
 /// ```
-pub fn print_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
+pub fn print_cols<T: std::fmt::Display>(msg: T, fg: UC, bg: UC){
     use_colours(fg, bg);
     print!("{}", msg);
     restore_colours();
@@ -498,9 +506,9 @@ pub fn print_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::println_cols("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black);
+/// tbl::println_cols("No vegetal!", tbl::UC::Green, tbl::UC::Black);
 /// ```
-pub fn println_cols<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour){
+pub fn println_cols<T: std::fmt::Display>(msg: T, fg: UC, bg: UC){
     use_colours(fg, bg);
     println!("{}", msg);
     restore_colours();
@@ -537,9 +545,9 @@ pub fn println_style<T: std::fmt::Display>(msg: T, sty: TextStyle){
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::print_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
+/// tbl::print_cols_style("No vegetal!", tbl::UC::Green, tbl::UC::Black, tbl::TextStyle::Bold);
 /// ```
-pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour, sty: TextStyle){
+pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UC, bg: UC, sty: TextStyle){
     use_style(sty);
     use_colours(fg, bg);
     print!("{}", msg);
@@ -552,9 +560,9 @@ pub fn print_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserCo
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// tbl::println_cols_style("No vegetal!", tbl::UserColour::Green, tbl::UserColour::Black, tbl::TextStyle::Bold);
+/// tbl::println_cols_style("No vegetal!", tbl::UC::Green, tbl::UC::Black, tbl::TextStyle::Bold);
 /// ```
-pub fn println_cols_style<T: std::fmt::Display>(msg: T, fg: UserColour, bg: UserColour, sty: TextStyle){
+pub fn println_cols_style<T: std::fmt::Display>(msg: T, fg: UC, bg: UC, sty: TextStyle){
     use_style(sty);
     use_colours(fg, bg);
     println!("{}", msg);
