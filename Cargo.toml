@@ -6,7 +6,7 @@ edition = "2018"
 description = "A simple crate with basic functionality for terminal applications."
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/ocdy1001/term-basics-linux"
+repository = "https://github.com/codybloemhard/term-basics-linux"
 keywords = ["text","linux","terminal","io","unicode"]
 categories = ["command-line-interface"]
 
