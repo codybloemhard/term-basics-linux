@@ -32,13 +32,13 @@ The user chose there colours for a reason and nobody likes inconsistent colours 
 With all the fuss lately around GTK and distro's breaking themes for applications,
 this problem is easy to avoid with terminal applications by using the user's colours.
 ## contribution
-You can always create issues and pull requests on github.
+You can always create issues and pull requests.
 You can also mail to codybloemhard@gmail.com
 ### keycodes
 Sometimes different terminal emulators use different codes for certain keys like delete or end.
 For example, backspace is 127 on both suckless simple terminal (ST) and the build in terminal emulator in vscode.
 But delete is 27-91-80 on ST and 27-91-51-126 on vscode. End is 27-91-52-126 on ST and 27-91-70 on vscode.
-If you encounter a non-supported key code, please open an issue on github with the function key(delete,end,etc) and what platform(terminal emulator) you run.
+If you encounter a non-supported key code, please open an issue with the function key(delete,end,etc) and what platform(terminal emulator) you run.
 The ```test_chars``` function can help look up what key code it is on your platform. It is helpfull to to supply that information.
 Ofcourse you can also make a pull request.
 ### testing
@@ -52,7 +52,7 @@ term-basics-linux is tested on the following terminals (emulators):
 
 ## links
 This readme is used on multiple sites so some links might be redundant.
-* [https://github.com/codybloemhard/term-basics-linux](https://github.com/codybloemhard/term-basics-linux)
+* [https://gitlab.com/codybloemhard/term-basics-linux](https://gitlab.com/codybloemhard/term-basics-linux)
 * [https://crates.io/crates/term-basics-linux](https://crates.io/crates/term-basics-linux)
 * [https://docs.rs/term-basics-linux/](https://docs.rs/term-basics-linux/)
 
