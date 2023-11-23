@@ -1,106 +1,44 @@
-extern crate term_basics_linux;
 use term_basics_linux as tbl;
 
-pub fn main(){
-    println!("This is a {}test{} with a value: {}{}{}",
-        tbl::UC::Red, tbl::UC::Std, tbl::UC::Yellow, 1.0, tbl::UC::Std
-    );
-    test_prompt();
+pub fn main() {
+    test_getch();
 }
 
 #[allow(unused)]
-fn test_getch(){
+fn test_getch() {
     let x = tbl::getch();
-    tbl::println(x as char);
+    println!("{}", x as char);
 }
 
 #[allow(unused)]
-fn test_test_chars(){
+fn test_test_chars() {
     tbl::test_chars();
 }
 
 #[allow(unused)]
-fn test_input_field(){
-    tbl::println(tbl::input_field());
+fn test_input_field() {
+    println!("{}", tbl::input_field());
 }
 
 #[allow(unused)]
-fn test_input_field_scrollable(){
+fn test_input_field_scrollable() {
     let mut his = tbl::InputHistory::new(100);
     his.add("l");
     his.add("third");
     his.add("second");
     his.add("first");
-    tbl::println(tbl::input_field_scrollable(&mut his));
+    println!("{}", tbl::input_field_scrollable(&mut his));
 }
 
 #[allow(unused)]
-fn test_prompt(){
+fn test_prompt() {
     let name = tbl::prompt("type your name: ");
-    tbl::print("Your name: ");
-    tbl::println(name);
+    print!("Your name: ");
+    println!("{name}");
 }
 
 #[allow(unused)]
-fn test_set_colour(){
-    for i in tbl::UC::iterator(){
-        tbl::set_colour(*i, tbl::XG::FG);
-        println!("haha yes");
-    }
-    tbl::set_colour(tbl::UC::Std, tbl::XG::FG);
-    for i in tbl::UC::iterator(){
-        tbl::set_colour(*i, tbl::XG::BG);
-        println!("haha yes");
-    }
-}
-
-#[allow(unused)]
-fn test_set_style(){
-    for i in tbl::TextStyle::iterator(){
-        tbl::set_colour(tbl::UC::Std, tbl::XG::FG);
-        tbl::set_style(*i);
-        println!("haha yes");
-    }
-}
-
-#[allow(unused)]
-fn test_set_colours(){
-    for fg in tbl::UC::iterator(){
-        for bg in tbl::UC::iterator(){
-            tbl::set_colours(*fg, *bg);
-            println!("haha yes");
-        }
-    }
-}
-
-#[allow(unused)]
-fn test_all_colours_styles(){
-    //can be set in any ordering
-    for sty in tbl::TextStyle::iterator(){
-        for bg in tbl::UC::iterator(){
-            for fg in tbl::UC::iterator(){
-                tbl::set_colour(*bg, tbl::XG::BG);
-                tbl::set_colour(*fg, tbl::XG::FG);
-                tbl::set_style(*sty);
-                println!("haha yes");
-            }
-        }
-    }
-    //set style and colours independently
-    for sty in tbl::TextStyle::iterator(){
-        tbl::set_style(*sty);
-        for bg in tbl::UC::iterator(){
-            tbl::set_colour(*bg, tbl::XG::BG);
-            for fg in tbl::UC::iterator(){
-                tbl::set_colour(*fg, tbl::XG::FG);
-                println!("haha yes");
-            }
-        }
-    }
-}
-
-#[allow(unused)]
-fn test_number_parse(){
+fn test_number_parse() {
     let user_input = tbl::prompt("type your age: ");
     let age: Option<u8> = tbl::string_to_value(&user_input);
     if let Some(agev) = age { println!("Your age: {}", agev); }
@@ -108,13 +46,13 @@ fn test_number_parse(){
 }
 
 #[allow(unused)]
-fn test_input_history_new(){
+fn test_input_history_new() {
     let mut his = tbl::InputHistory::new(10);
     let _ = tbl::input_field_scrollable(&mut his);
 }
 
 #[allow(unused)]
-fn test_input_history_add(){
+fn test_input_history_add() {
     let mut his = tbl::InputHistory::new(2);
     his.add("0");
     his.add("1");
@@ -124,7 +62,7 @@ fn test_input_history_add(){
 }
 
 #[allow(unused)]
-fn test_input_history_get_index(){
+fn test_input_history_get_index() {
     let mut his = tbl::InputHistory::new(3);
     his.add("0");
     his.add("1");
@@ -139,159 +77,68 @@ fn test_input_history_get_index(){
 }
 
 #[allow(unused)]
-fn test_prompt_scrollable(){
+fn test_prompt_scrollable() {
     let mut his = tbl::InputHistory::new(10);
     his.add("previously typed in name");
     let name = tbl::prompt_scrollable("type your name: ", &mut his);
-    tbl::print("Your name: ");
-    tbl::println(name);
+    print!("Your name: ");
+    println!("{name}");
 }
 
 #[allow(unused)]
-fn test_input_field_custom(){
-    //Hide the users password as it is typed in!
+fn test_input_field_custom() {
+    // Hide the users password as it is typed in!
     let password = tbl::input_field_custom(
         &mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('*')
     );
-    tbl::println_style(password, tbl::TextStyle::Bold); // THAN PRINT IT OUT
+    println!("{password}");
 }
 
 #[allow(unused)]
-fn test_prompt_masked(){
+fn test_prompt_masked() {
     // Hide the users password as it is typed in!
     let password = tbl::prompt_masked("Enter password: ", '*');
-    // show it to the world with some extra spice.
-    tbl::println_style(password, tbl::TextStyle::Blink);
+    println!("{password}");
 }
 
 #[allow(unused)]
-fn test_persistant(){
-    tbl::println_col("cyan", tbl::UC::Cyan);
-    println!("after cyan");
-    tbl::set_colour(tbl::UC::Red, tbl::XG::FG);
-    tbl::println("red");
-    tbl::use_colour(tbl::UC::Yellow, tbl::XG::FG);
-    tbl::println("yellow");
-    tbl::restore_colour(tbl::XG::FG);
-    tbl::println("red");
-    println!("still red");
-}
-
-#[allow(unused)]
-fn test_use_colour(){
-    tbl::use_colour(tbl::UC::Blue, tbl::XG::FG);
-    tbl::println("henlo frens");
-}
-
-#[allow(unused)]
-fn test_restore_colour(){
-    tbl::set_colour(tbl::UC::Red, tbl::XG::FG);
-    tbl::println("this is red");
-    tbl::use_colour(tbl::UC::Green, tbl::XG::FG);
-    tbl::println("this is green");
-    tbl::restore_colour(tbl::XG::FG);
-    tbl::println("this is red again");
-}
-
-#[allow(unused)]
-fn test_use_colours(){
-    for fg in tbl::UC::iterator(){
-        for bg in tbl::UC::iterator(){
-            tbl::use_colours(*fg, *bg);
-            println!("haha yes");
-        }
-    }
-}
-
-#[allow(unused)]
-fn test_restore_colours(){
-    tbl::set_colours(tbl::UC::Green, tbl::UC::Magenta);
-    tbl::println("cool and good");
-    tbl::use_colours(tbl::UC::Red, tbl::UC::Black);
-    tbl::println("warm and bad");
-    tbl::restore_colours();
-    tbl::println("cool and good again");
-}
-
-#[allow(unused)]
-fn test_use_style(){
-    for i in tbl::TextStyle::iterator(){
-        tbl::use_style(*i);
-        println!("haha yes");
-    }
-}
-
-#[allow(unused)]
-fn test_restore_style(){
-    tbl::set_style(tbl::TextStyle::Bold);
-    tbl::println("this is bold");
-    tbl::use_style(tbl::TextStyle::Crossed);
-    tbl::println("this is crossed");
-    tbl::restore_style();
-    tbl::println("this is bold again");
-}
-
-#[allow(unused)]
-fn test_reset_colours(){
-    tbl::set_colours(tbl::UC::Magenta, tbl::UC::Yellow);
-    tbl::set_style(tbl::TextStyle::Underlined);
-    tbl::println("i am magenta on yellow as well as underlined");
-    tbl::reset_colours();
-    tbl::println("i am underlined but have standard colours")
-}
-
-#[allow(unused)]
-fn test_reset_style(){
-    tbl::set_colours(tbl::UC::Cyan, tbl::UC::Red);
-    tbl::set_style(tbl::TextStyle::Blink);
-    tbl::println("im am cyan on red and blinking");
-    tbl::reset_style();
-    tbl::println("i am still cyan on red but im am not blinking");
-}
-
-#[allow(unused)]
-fn test_discard_newline_on_prompt_nexttime(){
+fn test_discard_newline_on_prompt_nexttime() {
     tbl::discard_newline_on_prompt_nexttime();
     let _ = tbl::prompt("enter your name: ");
-    tbl::println(" // your name");
+    println!(" // your name");
 }
 
 #[allow(unused)]
-fn test_use_newline_on_prompt(){
-    tbl::discard_newline_on_prompt_nexttime();//use somewhere
-    tbl::use_newline_on_prompt();//cancel somewhere else in code
+fn test_use_newline_on_prompt() {
+    tbl::discard_newline_on_prompt_nexttime(); // use somewhere
+    tbl::use_newline_on_prompt(); // cancel somewhere else in code
     let _ = tbl::prompt("enter your name: ");
-    tbl::println(" // your name");
+    println!(" // your name");
 }
 
 #[allow(unused)]
-fn test_prompt_char(){
-    tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy));
-    tbl::println(
+fn test_prompt_char() {
+    println!("{}", tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy));
+    println!("{}",
         tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('#'))
     );
-    tbl::println(tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::None));
+    println!("{}", tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::None));
 }
 
 #[allow(unused)]
-fn test_prompt_custom(){
+fn test_prompt_custom() {
     let mut his = tbl::InputHistory::new(2);
     his.add("hidden option 0");
-    his.add("hidden option 1"); //provide options but the user can't see them.
+    his.add("hidden option 1"); // provide options but the user can't see them.
     let x = tbl::prompt_custom("enter input:", &mut his, tbl::PromptChar::None);
-    tbl::println(x);
+    println!("{x}");
 }
 
-#[allow(unused)]
-fn test_println_cols_style(){
-    tbl::println_cols_style("test", tbl::UC::Red, tbl::UC::Yellow, tbl::TextStyle::Crossed);
-}
-
-//documentation integration tests, that are not included above
+// documentation integration tests, that are not included above
 
 #[allow(unused)]
-fn test_getch_docu(){
-    //print user input until spacebar is pressed
+fn test_getch_docu() {
+    // print user input until spacebar is pressed
     loop{
         let x = tbl::getch();
         if x == 32 { break; }
@@ -300,7 +147,7 @@ fn test_getch_docu(){
 }
 
 #[allow(unused)]
-fn test_input_field_scrollable_docu(){
+fn test_input_field_scrollable_docu() {
     let mut history = tbl::InputHistory::new(100);
     let input0 = tbl::input_field_scrollable(&mut history);
     println!("You typed: {}", input0);
