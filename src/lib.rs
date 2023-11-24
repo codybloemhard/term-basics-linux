@@ -2,21 +2,18 @@
 //!
 //! ```
 //! use term_basics_linux as tbl;
-//! let name = tbl::prompt("type your name: ");
-//! print!("Your name: ");
-//! println!("{name}");
+//! print!("typ your name: ");
+//! let name = tbl::input_field_simple(true);
+//! print!("Your name: {name}");
 //! ```
 
 use std::{
     io::{ self, Write, Read },
     cmp::{ max, min },
-    sync::atomic::{ AtomicU8, Ordering },
     collections::VecDeque,
 };
 
 use termios::{ Termios, TCSANOW, ECHO, ICANON, tcsetattr };
-
-static USE_NEWLINE_PROMPT: AtomicU8 = AtomicU8::new(0);
 
 pub fn getch() -> u8 {
     // https://stackoverflow.com/questions/26321592/how-can-i-read-one-character-from-stdin-without-having-to-hit-enter
@@ -62,7 +59,7 @@ impl InputHistory {
     /// ```
     /// use term_basics_linux as tbl;
     /// let mut his = tbl::InputHistory::new(10);
-    /// let x = tbl::input_field_scrollable(&mut his);
+    /// let x = tbl::input_field_history(&mut his, true);
     /// ```
     pub fn new(maxlen: usize) -> Self {
         Self{
@@ -89,8 +86,8 @@ impl InputHistory {
     /// his.add(&"0".to_string());
     /// his.add(&"1".to_string());
     /// his.add(&"2".to_string());
-    /// //only "1" and "2" will remain, as 0 is removed.
-    /// let _ = tbl::input_field_scrollable(&mut his);
+    /// // only "1" and "2" will remain, as 0 is removed.
+    /// let _ = tbl::input_field_history(&mut his, true);
     /// ```
     pub fn add(&mut self, string: &str) {
         self.history.push_back(string.to_string());
@@ -127,108 +124,27 @@ impl InputHistory {
     }
 }
 
-/// Lets the user type text. It returns the string after the user presses 'enter'.
-/// It supports moving the cursor with the arrow keys,
-/// going to the begin and end of the line using 'home' and 'end'
-/// and deleting characters with backspace and the delete key.
-///
-/// # Example
-///
-/// ```
-/// use term_basics_linux as tbl;
-/// let user_input = tbl::input_field();
-/// ```
-pub fn input_field() -> String {
-    input_field_raw(&mut InputHistory::new(0), PromptChar::Copy)
-}
-
-/// Lets the user type text. It returns the string after the user presses 'enter'.
-/// It supports all functions ```input_field()``` supports.
-/// It also supports scrolling through the history of earlier typed strings with
-/// the 'up' and 'down' arrow keys.
-///
-/// # Example
-///
-/// ```
-/// use term_basics_linux as tbl;
-/// let mut history = tbl::InputHistory::new(100);
-/// let input0 = tbl::input_field_scrollable(&mut history);
-/// println!("You typed: {}", input0);
-/// let input1 = tbl::input_field_scrollable(&mut history);
-/// println!("You typed: {}", input1);
-/// ```
-pub fn input_field_scrollable(history: &mut InputHistory) -> String {
-    input_field_raw(history, PromptChar::Copy)
-}
-
-/// Lets the user type text. It returns the string after the user presses 'enter'.
-/// It supports all functions ```input_field()``` supports.
-/// You can specify your own ```InputHistory``` and ```PromptChar```.
-///
-/// # Example
-///
-/// ```use term_basics_linux as tbl;
-/// let password = tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('*')); // hide the users password as it is typed in!
-/// println!("{password}");
-/// ```
-pub fn input_field_custom(his: &mut InputHistory, pc: PromptChar) -> String {
-    input_field_raw(his, pc)
-}
-
-/// Call this before ```input_field``` or it's variations if you want to NOT print a newline(```\n```) after the user presses enter.
-/// This will work for the next time you call any version of ```input_field```.
-/// To cancel it you can call ```use_newline_on_prompt```.
-///
-/// # Example
-///
-/// ```
-/// use term_basics_linux as tbl;
-/// tbl::discard_newline_on_prompt_nexttime();
-/// let _ = tbl::prompt("enter your name: ");
-/// println!(" // your name");
-/// ```
-pub fn discard_newline_on_prompt_nexttime() {
-    USE_NEWLINE_PROMPT.store(1, Ordering::Relaxed);
-}
-
-/// Call this to let any variation of ```input_field``` print a newline after the user presses enter.
-/// This is not needed, they will print a newline by default.
-/// This is used to cancel ```discard_newline_on_prompt_nexttime```.
-///
-/// # Example
-///
-/// ```
-/// use term_basics_linux as tbl;
-/// tbl::discard_newline_on_prompt_nexttime(); // use somewhere
-/// tbl::use_newline_on_prompt(); // cancel somewhere else in code
-/// let _ = tbl::prompt("enter your name: ");
-/// println!(" // your name");
-/// ```
-pub fn use_newline_on_prompt() {
-    USE_NEWLINE_PROMPT.store(0, Ordering::Relaxed);
-}
-
-/// What kind of character the prompt will print.
+/// What kind of character the input field will print.
 /// ```Copy``` will just print what the user types in.
-/// ```Substitude(char)``` will print that character.
+/// ```Substitute(char)``` will print that character.
 /// ```None``` will not print anything at all.
 ///
 /// # Example
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// println!("{}", tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy));
-/// println!("{}", tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitude('#')));
-/// println!("{}", tbl::input_field_custom(&mut tbl::InputHistory::new(0), tbl::PromptChar::None));
+/// println!("{}", tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy, true));
+/// println!("{}", tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitute('#'), true));
+/// println!("{}", tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::None, true));
 /// ```
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PromptChar {
     Copy,
-    Substitude(char),
+    Substitute(char),
     None,
 }
 
-fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
+pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) -> String {
     fn charvec_to_string(vec: &[char]) -> String {
         let mut string = String::new();
         for &ch in vec {
@@ -237,7 +153,8 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
         string
     }
     fn typed_char(
-        ch: u8, buff: &mut Vec<char>,
+        ch: u8,
+        buff: &mut Vec<char>,
         gstate: &mut u8,
         hstate: &mut u8,
         pos: &mut usize,
@@ -246,12 +163,12 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
         let ch = ch as char;
         buff.insert(*pos, ch);
         if pc != PromptChar::None {
-            if *pos != buff.len() - 1{
+            if *pos != buff.len() - 1 {
                 for item in buff.iter().skip(*pos) {
                     put_char(*item, pc);
                 }
-                go_back(*pos,buff.len()-1,pc);
-            }else{
+                go_back(*pos, buff.len() - 1, pc);
+            } else {
                 put_char(ch, pc);
             }
         }
@@ -295,10 +212,10 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
             write_all(res, pc);
             let diff = old_len as i32 - res.len() as i32;
             if diff <= 0 { return; }
-            for _ in 0..diff{
+            for _ in 0..diff {
                 print!(" ");
             }
-            for _ in 0..diff{
+            for _ in 0..diff {
                 print!("{}", 8 as char);
             }
         }
@@ -311,7 +228,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
             put_char(*item, pc);
         }
         if pc != PromptChar::None { print!(" "); }
-        go_back(*pos,res.len()+1, pc);
+        go_back(*pos, res.len() + 1, pc);
         *gstate = 0;
     }
     fn end(res: &mut Vec<char>, pos: &mut usize, hoen_state: &mut u8, pc: PromptChar) {
@@ -326,7 +243,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
     fn put_char(ch: char, pc: PromptChar) {
         match pc {
             PromptChar::Copy => print!("{}", ch),
-            PromptChar::Substitude(sch) => print!("{}", sch),
+            PromptChar::Substitute(sch) => print!("{}", sch),
             PromptChar::None => {},
         };
     }
@@ -343,15 +260,14 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
     let mut pos = 0;
     let mut his_index: i32 = 0;
 
+    flush().expect("term_basics_linux: Error: stdout flush failed.");
     loop {
         let mut x = getch();
         if x == 8 { x = 127; } // shift + backspace
-        match x{
+        match x {
             10 => { // enter
-                if USE_NEWLINE_PROMPT.load(Ordering::Relaxed) == 0 {
+                if newline {
                     println!();
-                }else{
-                    USE_NEWLINE_PROMPT.store(0, Ordering::Relaxed);
                 }
                 break;
             }
@@ -362,11 +278,11 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
                 if pc != PromptChar::None {
                     print!("{}", 8 as char);
                     //print!("\x1B[1D"); //also works
-                    for item in res.iter().skip(pos-1){
+                    for item in res.iter().skip(pos - 1){
                         put_char(*item, pc);
                     }
                     print!(" ");
-                    go_back(pos-1,res.len()+1,pc);
+                    go_back(pos - 1, res.len() + 1, pc);
                 }
                 pos -= 1;
                 gstate = 0;
@@ -444,7 +360,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
                 }
                 delete(&mut res, &mut pos, &mut gstate, pc);
             }
-            67 => {  // right arrow
+            67 => { // right arrow
                 if gstate == 2 {
                     let old_pos = pos;
                     pos = min(pos + 1, res.len());
@@ -455,7 +371,7 @@ fn input_field_raw(history: &mut InputHistory, pc: PromptChar) -> String {
                 }
                 else { typed_char(67, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
-            68 => {  // left arrow
+            68 => { // left arrow
                 if gstate == 2 {
                     let old_pos = pos;
                     pos = max(pos as i32 - 1, 0_i32) as usize;
@@ -484,7 +400,8 @@ pub fn string_to_bool(string: &str) -> bool {
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// let user_input = tbl::prompt("type your age: ");
+/// print!("type your age: ");
+/// let user_input = tbl::input_field_simple(true);
 /// let age: Option<u8> = tbl::string_to_value(&user_input);
 /// if age.is_none() { println!("Invalid age!"); }
 /// else { println!("Your age: {}", age.unwrap()); }
@@ -498,20 +415,17 @@ pub fn string_to_value<T: std::str::FromStr>(string: &str) -> Option<T> {
 
 /// Flushes stdout.
 /// When you do print! or term-basics-linux equivalent, it will not print immediately.
-/// For example if you print! and then input_field(), it will print after you typed in the input.
-/// flush() will make sure everything is printed first.
+/// flush() will make sure everything is printed first, before you do something else.
+/// Input fields flush themselves before the query for input.
 ///
 /// # Example
 ///
 /// ```
-/// use std::io::Write; // flush stdout
 /// use term_basics_linux as tbl;
 /// print!("type: ");
 /// tbl::flush().expect("oh no");
-/// let x = tbl::input_field();
 /// ```
 ///
-/// This example is the same as ``` let x = tbl::prompt("type: "); ```
 pub fn flush() -> io::Result<()> {
     std::io::stdout().flush()
 }
@@ -525,75 +439,17 @@ pub fn flush() -> io::Result<()> {
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// let name = tbl::prompt("type your name: ");
+/// print!("type your name: ");
+/// let name = tbl::input_field_simple(true);
 /// print!("Your name: ");
 /// println!("{name}");
 /// ```
-pub fn prompt(msg : &str) -> String {
-    print!("{msg}");
-    flush().expect("term_basics_linux: Error: stdout flush failed.");
-    input_field()
+pub fn input_field_simple(newline: bool) -> String {
+    input_field(&mut InputHistory::new(0), PromptChar::Copy, newline)
 }
 
-/// Prints a message to the user.
-/// The user can type its input next to the message on the same line.
-/// It will return the user input after the user pressed enter.
-/// It uses term_basics_linux::input_field_scrollable and supports the same operations.
-///
-/// # Example
-///
-/// ```
-/// use term_basics_linux as tbl;
-/// let mut his = tbl::InputHistory::new(10);
-/// his.add(&"previously typed in name".to_string());
-/// let name = tbl::prompt_scrollable("type your name: ", &mut his);
-/// print!("Your name: ");
-/// println!("{name}");
-/// ```
-pub fn prompt_scrollable(msg: &str, his: &mut InputHistory) -> String {
-    print!("{msg}");
-    flush().expect("term_basics_linux: Error: stdout flush failed.");
-    input_field_scrollable(his)
-}
-
-/// Prints a message to the user.
-/// The user can type its input next to the message on the same line.
-/// It will return the user input after the user pressed enter.
-/// It uses term_basics_linux::input_field_scrollable and supports the same operations.
-///
-/// # Example
-///
-/// ```
-/// use term_basics_linux as tbl;
-/// let password = tbl::prompt_masked("Enter password: ", '*'); // Hide the users password as it is typed in!
-/// println!("{password}");
-/// ```
-pub fn prompt_masked(msg: &str, ch: char) -> String {
-    print!("{msg}");
-    flush().expect("term_basics_linux: Error: stdout flush failed.");
-    input_field_custom(&mut InputHistory::new(0), PromptChar::Substitude(ch))
-}
-
-/// Prints a message to the user.
-/// The user can type its input next to the message on the same line.
-/// It will return the user input after the user pressed enter.
-/// It uses term_basics_linux::input_field_custom and supports the same operations.
-/// So you can provide your own InputHistory and PromptChar.
-///
-/// # Example
-///
-/// ```
-/// use term_basics_linux as tbl;
-/// let mut his = tbl::InputHistory::new(2);
-/// his.add(&"hidden option 0".to_string());
-/// his.add(&"hidden option 1".to_string());//provide options but the user can't see them.
-/// let x = tbl::prompt_custom("enter input:", &mut his, tbl::PromptChar::None);
-/// println!("{x}");
-/// ```
-pub fn prompt_custom(msg: &str, his: &mut InputHistory, pc: PromptChar) -> String {
-    print!("{msg}");
-    flush().expect("term_basics_linux: Error: stdout flush failed.");
-    input_field_custom(his, pc)
+pub fn input_field_history(history: &mut InputHistory, newline: bool) -> String {
+    input_field(history, PromptChar::Copy, newline)
 }
 
 #[cfg(test)]
