@@ -1,7 +1,7 @@
 use term_basics_linux as tbl;
 
 pub fn main() {
-    test_getch();
+    test_input_history_add();
 }
 
 #[allow(unused)]
@@ -40,11 +40,11 @@ fn test_input_history_new() {
 #[allow(unused)]
 fn test_input_history_add() {
     let mut his = tbl::InputHistory::new(2);
-    his.add("0");
-    his.add("1");
-    his.add("2");
-    //only "1" and "2" will remain, as 0 is removed.
-    let _ = tbl::input_field_history(&mut his, true);
+    his.add("zero");
+    his.add("one");
+    his.add("two");
+    // only "one" and "two" will remain, as "zero" is removed.
+    println!("{}", tbl::input_field_history(&mut his, true));
 }
 
 #[allow(unused)]
@@ -86,7 +86,7 @@ fn test_prompt_custom() {
     his.add("hidden option 0");
     his.add("hidden option 1"); // provide options but the user can't see them.
     print!("enter input: ");
-    let x = tbl::input_field_history(&mut his, true);
+    let x = tbl::input_field(&mut his, tbl::PromptChar::None, true);
     println!("{x}");
 }
 

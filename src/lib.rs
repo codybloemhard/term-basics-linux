@@ -181,8 +181,8 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
             buff.clear();
             return 0;
         }
-        go_back(0, buff.len(), pc);
         let len = buff.len();
+        go_back(0, len, pc);
         buff.clear();
         len
     }
@@ -205,10 +205,10 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
     ){
         let val = history.get_index(his_index);
         if let Some(valv) = val {
+            let old_len = delete_all(res, pc);
             feed_into_buffer(res, valv);
             *pos = res.len();
             if pc == PromptChar::None { return; }
-            let old_len = delete_all(res, pc);
             write_all(res, pc);
             let diff = old_len as i32 - res.len() as i32;
             if diff <= 0 { return; }
@@ -277,7 +277,7 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
                 res.remove(pos - 1);
                 if pc != PromptChar::None {
                     print!("{}", 8 as char);
-                    //print!("\x1B[1D"); //also works
+                    //print!("\x1B[1D"); // also works
                     for item in res.iter().skip(pos - 1){
                         put_char(*item, pc);
                     }
@@ -343,10 +343,10 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
                 }
             }
             126 => { // end(27-91-52-126) or delete(27-91-51-126)
-                if hoen_state == 3 { //end
+                if hoen_state == 3 { // end
                     end(&mut res, &mut pos, &mut hoen_state, pc);
                 }
-                else if gstate >= 2{ //delete
+                else if gstate >= 2{ // delete
                     delete(&mut res, &mut pos, &mut gstate, pc);
                 }
                 else {
