@@ -1,13 +1,13 @@
 [package]
 name = "term-basics-linux"
-version = "0.5.8"
+version = "1.0.0"
 authors = ["Cody Bloemhard <codybloemhard@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "A simple crate with basic functionality for terminal applications."
 license = "MIT"
 readme = "README.md"
 repository = "https://gitlab.com/codybloemhard/term-basics-linux"
-keywords = ["text","linux","terminal","io","unicode"]
+keywords = ["text", "linux", "terminal", "io"]
 categories = ["command-line-interface"]
 
 [lib]
@@ -19,6 +19,6 @@ name = "testbin"
 path = "src/bin.rs"
 
 [dependencies]
-termios = "0.3.1"
-num-traits = "0.2"
-num-derive = "0.2"
+termios = "0.3.3"
+num-traits = "0.2.17"
+num-derive = "0.4.1"

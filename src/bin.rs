@@ -1,7 +1,16 @@
 use term_basics_linux as tbl;
 
 pub fn main() {
+    test_test_chars();
+    test_getch();
+    test_input_field_simple();
+    test_number_parse();
+    test_input_history_new();
     test_input_history_add();
+    test_input_history_get_index();
+    test_input_field_scrollable();
+    test_prompt_char();
+    test_prompt_custom();
 }
 
 #[allow(unused)]
@@ -33,23 +42,23 @@ fn test_number_parse() {
 
 #[allow(unused)]
 fn test_input_history_new() {
-    let mut his = tbl::InputHistory::new(10);
-    let _ = tbl::input_field_history(&mut his, true);
+    let mut his = tbl::InputList::new(10);
+    let _ = tbl::input_field_scrollable(&mut his, true);
 }
 
 #[allow(unused)]
 fn test_input_history_add() {
-    let mut his = tbl::InputHistory::new(2);
+    let mut his = tbl::InputList::new(2);
     his.add("zero");
     his.add("one");
     his.add("two");
     // only "one" and "two" will remain, as "zero" is removed.
-    println!("{}", tbl::input_field_history(&mut his, true));
+    println!("{}", tbl::input_field_scrollable(&mut his, true));
 }
 
 #[allow(unused)]
 fn test_input_history_get_index() {
-    let mut his = tbl::InputHistory::new(3);
+    let mut his = tbl::InputList::new(3);
     his.add("0");
     his.add("1");
     his.add("2");
@@ -64,29 +73,29 @@ fn test_input_history_get_index() {
 
 #[allow(unused)]
 fn test_input_field_scrollable() {
-    let mut his = tbl::InputHistory::new(10);
+    let mut his = tbl::InputList::new(10);
     his.add("previously typed in name");
     print!("type your name: ");
-    let name = tbl::input_field_history(&mut his, true);
+    let name = tbl::input_field_scrollable(&mut his, true);
     println!("your name: {name}");
 }
 
 #[allow(unused)]
 fn test_prompt_char() {
-    println!("{}", tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy, true));
+    println!("{}", tbl::input_field(&mut tbl::InputList::new(0), tbl::PrintChar::Copy, true));
     println!("{}",
-        tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitute('*'), true)
+        tbl::input_field(&mut tbl::InputList::new(0), tbl::PrintChar::Substitute('*'), true)
     );
-    println!("{}", tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::None, true));
+    println!("{}", tbl::input_field(&mut tbl::InputList::new(0), tbl::PrintChar::None, true));
 }
 
 #[allow(unused)]
 fn test_prompt_custom() {
-    let mut his = tbl::InputHistory::new(2);
+    let mut his = tbl::InputList::new(2);
     his.add("hidden option 0");
     his.add("hidden option 1"); // provide options but the user can't see them.
     print!("enter input: ");
-    let x = tbl::input_field(&mut his, tbl::PromptChar::None, true);
+    let x = tbl::input_field(&mut his, tbl::PrintChar::None, true);
     println!("{x}");
 }
 

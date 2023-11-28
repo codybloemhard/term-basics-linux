@@ -1,57 +1,56 @@
-[![Crate](https://img.shields.io/crates/v/term-basics-linux.svg)](https://crates.io/crates/term-basics-linux)
-[![API](https://img.shields.io/crates/v/term-basics-linux.svg?color=blue&label=docs)](https://docs.rs/term-basics-linux/)
 # term-basics-linux
-Rust crate libary that provides simple and basic terminal functionality for linux. (Work In Progress!)
-## usage
-As the name is quite long, you can do something like this:
-```use term_basics_linux as tbl;```
-After that you can use the crate:
-```let name = tbl::prompt("type your name: ");```
-It is recommended to use the ```tbl::``` notation or similar, just like you would not use
-```using namespace std;``` in c++.
-### examples
-The main feature of this crate is the input field, supporting editing your input text with function keys like backspace, delete, home, end, arrows.
-```tbl::println(tbl::input_field());```
-```
-let name = tbl::prompt("type your name: ");
-tbl::print("Your name: ");
-tbl::println(name);
-```
-It also supports simple user defined colours and text styles:
-```tbl::print_cols_style("very nice", tbl::UserColour::Yellow, tbl::UserColour::Cyan, tbl::TextStyle::Bold);```
-Another feature is ```getch()``` which returns the characters from stdin with out the user having to press enter. It can be very useful and is not available by default in rust.
-## design
-This crate is very simple by design, as it does simple things the code should not be complicated.
-It is made for linux, as it is a crate for terminal applications.
-With MacOS being a unix based OS and windows having a linux kernel build in, it should be kind of portable-ish.
-The crate only supports user defined colours by design.
-First of all it keeps this crate simple.
-Secondly i think you should only use user defined colours.
-If you use them you application will match with the enviroment and other applications.
-The user chose there colours for a reason and nobody likes inconsistent colours across applications.
-With all the fuss lately around GTK and distro's breaking themes for applications,
-this problem is easy to avoid with terminal applications by using the user's colours.
-## contribution
-You can always create issues and pull requests.
-You can also mail to codybloemhard@gmail.com
-### keycodes
-Sometimes different terminal emulators use different codes for certain keys like delete or end.
-For example, backspace is 127 on both suckless simple terminal (ST) and the build in terminal emulator in vscode.
-But delete is 27-91-80 on ST and 27-91-51-126 on vscode. End is 27-91-52-126 on ST and 27-91-70 on vscode.
-If you encounter a non-supported key code, please open an issue with the function key(delete,end,etc) and what platform(terminal emulator) you run.
-The ```test_chars``` function can help look up what key code it is on your platform. It is helpfull to to supply that information.
-Ofcourse you can also make a pull request.
-### testing
-term-basics-linux is tested on the following terminals (emulators):
 
-| Platform                                  | Tested |
-|:----------------------------------------- |:------ |
-| ST (suckless simple terminal, zsh)        | Always |
-| vscode (build in terminal emulator, zsh)  | Always |
-| tty (arch linux, zsh)                     | Todo   |
+Rust crate library that provides basic terminal input functionality for Linux.
+The main feature is the single line input field.
+It supports editing the text with backspace and delete,
+as well as navigating using home, end and the arrow keys.
+
+```rust
+print!("your input: ");
+let input = tbl::input_field_simple(true);
+```
+
+It supports a list of predefined inputs for the user to scroll between (up/down arrow):
+
+```rust
+let mut his = tbl::InputList::new(2);
+his.add("one");
+his.add("two");
+println!("{}", tbl::input_field_scrollable(&mut his, true));
+```
+
+You can also hide/substitute the typed characters.
+This is handy for password input:
+
+```rust
+// like doas/sudo
+let pass = tbl::input_field(&mut tbl::InputList::new(0), tbl::PrintChar::None, true);
+// like websites
+let pass = tbl::input_field(&mut tbl::InputList::new(0), tbl::PrintChar::Substitute('*'), true);
+```
+
+Another feature is ```getch()``` which returns the characters from stdin without
+the user having to press enter.
+It can be useful and is not available by default in rust.
+All other input fields are using this function.
+
+## design
+
+This crate is very minimalistic by design, It does just a few things.
+It is for Linux only. This keeps it simple and lightweight.
+For a 
+
+## keycodes
+
+Sometimes different terminal emulators use different codes for certain keys like delete or end.
+For example, backspace is 127 on both suckless simple terminal (ST)
+and the build in terminal emulator in vscode.
+But delete is 27-91-80 on ST and 27-91-51-126 on vscode.
+End is 27-91-52-126 on ST and 27-91-70 on vscode.
+The ```test_chars``` function can help look up what key code it is on your platform.
 
 ## links
-This readme is used on multiple sites so some links might be redundant.
+
 * [https://gitlab.com/codybloemhard/term-basics-linux](https://gitlab.com/codybloemhard/term-basics-linux)
 * [https://crates.io/crates/term-basics-linux](https://crates.io/crates/term-basics-linux)
 * [https://docs.rs/term-basics-linux/](https://docs.rs/term-basics-linux/)
@@ -59,7 +58,7 @@ This readme is used on multiple sites so some links might be redundant.
 ## License
 
 ```
-Copyright (C) 2022 Cody Bloemhard
+Copyright (C) 2023 Cody Bloemhard
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

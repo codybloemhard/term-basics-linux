@@ -15,6 +15,16 @@ use std::{
 
 use termios::{ Termios, TCSANOW, ECHO, ICANON, tcsetattr };
 
+/// Reads a char from keyboard input.
+/// Returns the first byte, does not wait for the user to press enter.
+///
+/// # Example
+///
+/// ```
+/// use term_basics_linux as tbl;
+/// println!("Press any key...");
+/// let anykey = tbl::getch();
+/// ```
 pub fn getch() -> u8 {
     // https://stackoverflow.com/questions/26321592/how-can-i-read-one-character-from-stdin-without-having-to-hit-enter
     let stdin = 0;
@@ -45,36 +55,36 @@ pub fn test_chars() {
     }
 }
 
-/// A struct that holds information about a history of typed input's but the user.
-pub struct InputHistory {
-    history: VecDeque<String>,
+/// A struct that holds inputs available for the user to scroll through.
+pub struct InputList {
+    ilist: VecDeque<String>,
     maxlen: usize,
 }
 
-impl InputHistory {
-    /// Make a new InputHistory with a certain maximum capacity.
+impl InputList {
+    /// Make a new InputList with a certain maximum capacity.
     ///
     /// # Example
     ///
     /// ```
     /// use term_basics_linux as tbl;
-    /// let mut his = tbl::InputHistory::new(10);
-    /// let x = tbl::input_field_history(&mut his, true);
+    /// let mut his = tbl::InputList::new(10);
+    /// let x = tbl::input_field_scrollable(&mut his, true);
     /// ```
     pub fn new(maxlen: usize) -> Self {
         Self{
-            history: VecDeque::new(),
+            ilist: VecDeque::new(),
             maxlen
         }
     }
 
     fn trim(&mut self){
-        while self.history.len() > self.maxlen {
-            self.history.pop_front();
+        while self.ilist.len() > self.maxlen {
+            self.ilist.pop_front();
         }
     }
 
-    /// Adds an element to the history.
+    /// Adds an element to the list.
     /// It will delete items if it's length would grow past the max length.
     /// the oldest items will be removed.
     ///
@@ -82,15 +92,15 @@ impl InputHistory {
     ///
     /// ```
     /// use term_basics_linux as tbl;
-    /// let mut his = tbl::InputHistory::new(2);
+    /// let mut his = tbl::InputList::new(2);
     /// his.add(&"0".to_string());
     /// his.add(&"1".to_string());
     /// his.add(&"2".to_string());
     /// // only "1" and "2" will remain, as 0 is removed.
-    /// let _ = tbl::input_field_history(&mut his, true);
+    /// let _ = tbl::input_field_scrollable(&mut his, true);
     /// ```
     pub fn add(&mut self, string: &str) {
-        self.history.push_back(string.to_string());
+        self.ilist.push_back(string.to_string());
         self.trim();
     }
 
@@ -101,7 +111,7 @@ impl InputHistory {
     ///
     /// ```
     /// use term_basics_linux as tbl;
-    /// let mut his = tbl::InputHistory::new(3);
+    /// let mut his = tbl::InputList::new(3);
     /// his.add(&"0".to_string());
     /// his.add(&"1".to_string());
     /// his.add(&"2".to_string());
@@ -114,13 +124,13 @@ impl InputHistory {
     /// println!("at  4: {:?}", his.get_index(4));  // "1"
     /// ```
     pub fn get_index(&self, mut index: i32) -> Option<&String> {
-        if !self.history.is_empty(){
-            index %= self.history.len() as i32;
+        if !self.ilist.is_empty(){
+            index %= self.ilist.len() as i32;
         }
         if index < 0{
             index += self.maxlen as i32;
         }
-        self.history.get(index as usize)
+        self.ilist.get(index as usize)
     }
 }
 
@@ -133,18 +143,18 @@ impl InputHistory {
 ///
 /// ```
 /// use term_basics_linux as tbl;
-/// println!("{}", tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::Copy, true));
-/// println!("{}", tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::Substitute('#'), true));
-/// println!("{}", tbl::input_field(&mut tbl::InputHistory::new(0), tbl::PromptChar::None, true));
+/// println!("{}", tbl::input_field(&mut tbl::InputList::new(0), tbl::PrintChar::Copy, true));
+/// println!("{}", tbl::input_field(&mut tbl::InputList::new(0), tbl::PrintChar::Substitute('#'), true));
+/// println!("{}", tbl::input_field(&mut tbl::InputList::new(0), tbl::PrintChar::None, true));
 /// ```
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum PromptChar {
+pub enum PrintChar {
     Copy,
     Substitute(char),
     None,
 }
 
-pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) -> String {
+pub fn input_field(ilist: &mut InputList, pc: PrintChar, newline: bool) -> String {
     fn charvec_to_string(vec: &[char]) -> String {
         let mut string = String::new();
         for &ch in vec {
@@ -158,11 +168,11 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
         gstate: &mut u8,
         hstate: &mut u8,
         pos: &mut usize,
-        pc: PromptChar
+        pc: PrintChar
     ){
         let ch = ch as char;
         buff.insert(*pos, ch);
-        if pc != PromptChar::None {
+        if pc != PrintChar::None {
             if *pos != buff.len() - 1 {
                 for item in buff.iter().skip(*pos) {
                     put_char(*item, pc);
@@ -176,8 +186,8 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
         *gstate = 0;
         *pos += 1;
     }
-    fn delete_all(buff: &mut Vec<char>, pc: PromptChar) -> usize {
-        if pc == PromptChar::None {
+    fn delete_all(buff: &mut Vec<char>, pc: PrintChar) -> usize {
+        if pc == PrintChar::None {
             buff.clear();
             return 0;
         }
@@ -191,7 +201,7 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
             buff.push(ch);
         }
     }
-    fn write_all(buff: &[char], pc: PromptChar) {
+    fn write_all(buff: &[char], pc: PrintChar) {
         for item in buff.iter() {
             put_char(*item, pc);
         }
@@ -199,16 +209,16 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
     fn scroll_action(
         res: &mut Vec<char>,
         pos: &mut usize,
-        history: &InputHistory,
+        ilist: &InputList,
         his_index: i32,
-        pc: PromptChar
+        pc: PrintChar
     ){
-        let val = history.get_index(his_index);
+        let val = ilist.get_index(his_index);
         if let Some(valv) = val {
             let old_len = delete_all(res, pc);
             feed_into_buffer(res, valv);
             *pos = res.len();
-            if pc == PromptChar::None { return; }
+            if pc == PrintChar::None { return; }
             write_all(res, pc);
             let diff = old_len as i32 - res.len() as i32;
             if diff <= 0 { return; }
@@ -220,19 +230,19 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
             }
         }
     }
-    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8, pc: PromptChar) {
+    fn delete(res: &mut Vec<char>, pos: &mut usize, gstate: &mut u8, pc: PrintChar) {
         if res.is_empty() { return; }
         if *pos >= res.len() - 1 { return; }
         res.remove(*pos);
         for item in res.iter().skip(*pos) {
             put_char(*item, pc);
         }
-        if pc != PromptChar::None { print!(" "); }
+        if pc != PrintChar::None { print!(" "); }
         go_back(*pos, res.len() + 1, pc);
         *gstate = 0;
     }
-    fn end(res: &mut Vec<char>, pos: &mut usize, hoen_state: &mut u8, pc: PromptChar) {
-        if pc != PromptChar::None {
+    fn end(res: &mut Vec<char>, pos: &mut usize, hoen_state: &mut u8, pc: PrintChar) {
+        if pc != PrintChar::None {
             for _ in *pos..res.len() {
                 print!("\x1B[1C");
             }
@@ -240,15 +250,15 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
         *hoen_state = 0;
         *pos = res.len();
     }
-    fn put_char(ch: char, pc: PromptChar) {
+    fn put_char(ch: char, pc: PrintChar) {
         match pc {
-            PromptChar::Copy => print!("{}", ch),
-            PromptChar::Substitute(sch) => print!("{}", sch),
-            PromptChar::None => {},
+            PrintChar::Copy => print!("{}", ch),
+            PrintChar::Substitute(sch) => print!("{}", sch),
+            PrintChar::None => {},
         };
     }
-    fn go_back(start: usize, end: usize, pc: PromptChar) {
-        if pc == PromptChar::None { return; }
+    fn go_back(start: usize, end: usize, pc: PrintChar) {
+        if pc == PrintChar::None { return; }
         for _ in  start..end {
             print!("{}", 8 as char);
         }
@@ -275,7 +285,7 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
                 if res.is_empty() { continue; }
                 if pos == 0 { continue; }
                 res.remove(pos - 1);
-                if pc != PromptChar::None {
+                if pc != PrintChar::None {
                     print!("{}", 8 as char);
                     //print!("\x1B[1D"); // also works
                     for item in res.iter().skip(pos - 1){
@@ -301,7 +311,7 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
                 if gstate == 2 {
                     gstate = 0;
                     his_index += 1;
-                    scroll_action(&mut res, &mut pos, history, his_index, pc);
+                    scroll_action(&mut res, &mut pos, ilist, his_index, pc);
                 }
                 else { typed_char(65, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
@@ -309,7 +319,7 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
                 if gstate == 2 {
                     gstate = 0;
                     his_index -= 1;
-                    scroll_action(&mut res, &mut pos, history, his_index, pc);
+                    scroll_action(&mut res, &mut pos, ilist, his_index, pc);
                 }
                 else { typed_char(66, &mut res, &mut gstate, &mut hoen_state, &mut pos, pc); }
             }
@@ -365,7 +375,7 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
                     let old_pos = pos;
                     pos = min(pos + 1, res.len());
                     gstate = 0;
-                    if pc == PromptChar::None { continue; }
+                    if pc == PrintChar::None { continue; }
                     // if pos < res.len() { print!("\x1B[1C"); }
                     if pos > old_pos { print!("\x1B[1C"); }
                 }
@@ -376,7 +386,7 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
                     let old_pos = pos;
                     pos = max(pos as i32 - 1, 0_i32) as usize;
                     gstate = 0;
-                    if pc == PromptChar::None { continue; }
+                    if pc == PrintChar::None { continue; }
                     // if pos > 0 { print!("{}", 8 as char); }
                     if pos < old_pos { print!("{}", 8 as char); }
                 }
@@ -386,7 +396,7 @@ pub fn input_field(history: &mut InputHistory, pc: PromptChar, newline: bool) ->
         }
     }
     let string = charvec_to_string(&res);
-    history.add(&string);
+    ilist.add(&string);
     string
 }
 
@@ -445,11 +455,11 @@ pub fn flush() -> io::Result<()> {
 /// println!("{name}");
 /// ```
 pub fn input_field_simple(newline: bool) -> String {
-    input_field(&mut InputHistory::new(0), PromptChar::Copy, newline)
+    input_field(&mut InputList::new(0), PrintChar::Copy, newline)
 }
 
-pub fn input_field_history(history: &mut InputHistory, newline: bool) -> String {
-    input_field(history, PromptChar::Copy, newline)
+pub fn input_field_scrollable(ilist: &mut InputList, newline: bool) -> String {
+    input_field(ilist, PrintChar::Copy, newline)
 }
 
 #[cfg(test)]
