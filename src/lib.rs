@@ -241,7 +241,7 @@ pub fn input_field(ilist: &mut InputList, pc: PrintChar, newline: bool) -> Strin
         go_back(*pos, res.len() + 1, pc);
         *gstate = 0;
     }
-    fn end(res: &mut Vec<char>, pos: &mut usize, hoen_state: &mut u8, pc: PrintChar) {
+    fn end(res: &mut [char], pos: &mut usize, hoen_state: &mut u8, pc: PrintChar) {
         if pc != PrintChar::None {
             for _ in *pos..res.len() {
                 print!("\x1B[1C");
